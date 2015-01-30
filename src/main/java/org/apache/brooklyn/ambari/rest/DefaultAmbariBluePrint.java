@@ -68,7 +68,9 @@ public class DefaultAmbariBluePrint implements AsMap {
         public HostGroup(Blueprint.HostGroup hostGroup) {
             name = hostGroup.name;
             for (Map component : hostGroup.components) {
-                components.add(new Component(component));
+                if (!component.get("name").equals("ZKFC")) {
+                    components.add(new Component(component));
+                }
             }
         }
 

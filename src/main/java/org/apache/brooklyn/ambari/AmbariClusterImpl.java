@@ -58,16 +58,16 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
                 "minRam", 4096);
 
         SshCommandSensor<String> hostnameSensor = new SshCommandSensor<String>(ConfigBag.newInstance()
-                .configure(SshCommandSensor.SENSOR_PERIOD, Duration.seconds(1))
+                .configure(SshCommandSensor.SENSOR_PERIOD, Duration.millis(100))
                 .configure(SshCommandSensor.SENSOR_NAME, "fqdn")
                 .configure(SshCommandSensor.SENSOR_COMMAND, "hostname -s"
                 ));
-        AmbariServer val = addChild(getConfig(SERVER_SPEC)
+
+        setAttribute(AMBARI_SERVER, addChild(getConfig(SERVER_SPEC)
                         .configure(SoftwareProcess.PROVISIONING_PROPERTIES, serverProvisioningProperties)
                         .displayName("Ambari Server")
                         .addInitializer(hostnameSensor)
-        );
-        setAttribute(AMBARI_SERVER, val);
+        ));
 
 
         ImmutableMap<String, Object> agentProvisioningProperties = ImmutableMap.<String, Object>of(
