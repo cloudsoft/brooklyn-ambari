@@ -26,36 +26,42 @@ import brooklyn.entity.software.ssh.SshCommandSensor;
 import brooklyn.event.SensorEvent;
 import brooklyn.event.SensorEventListener;
 import brooklyn.location.Location;
+import brooklyn.location.cloud.CloudLocationConfig;
 import brooklyn.util.config.ConfigBag;
 import brooklyn.util.time.Duration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.brooklyn.ambari.agent.AmbariAgent;
 import org.apache.brooklyn.ambari.server.AmbariServer;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 
 public class AmbariClusterImpl extends BasicStartableImpl implements AmbariCluster {
 
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(BasicStartableImpl.class);
+    public static final ImmutableList<String> DEFAULT_SERVICES = ImmutableList.<String>of("ZOOKEEPER");
     //TODO is there an issue with rebind here?  On rebind should be populated from somewhere else?
     private final ConcurrentHashMap<String, Boolean> registeredHosts = new ConcurrentHashMap<String, Boolean>();
+    private AtomicBoolean clusterCreationInitialised = new AtomicBoolean(false);
+    private Integer initialClusterSize;
 
     @Override
     public void init() {
         super.init();
 
         setDisplayName("Ambari Cluster");
-        Integer initialSize = getConfig(INITIAL_SIZE);
+        initialClusterSize = getConfig(INITIAL_SIZE);
         //TODO need to do something better with security groups here
         Object securityGroup = getConfig(SECURITY_GROUP);
-        ImmutableMap<String, Object> serverProvisioningProperties = ImmutableMap.<String, Object>of(
-                "inboundPorts", ImmutableList.of(8080, 22),
-                "securityGroups", securityGroup,
-                "minRam", 4096);
+        ImmutableMap<String, Object> serverProvisioningProperties = ImmutableMap.<String, Object>of( "inboundPorts", ImmutableList.of(8080, 22), "securityGroups", securityGroup,
+                "minRam", 8192);
 
         SshCommandSensor<String> hostnameSensor = new SshCommandSensor<String>(ConfigBag.newInstance()
                 .configure(SshCommandSensor.SENSOR_PERIOD, Duration.millis(100))
@@ -71,7 +77,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
 
         ImmutableMap<String, Object> agentProvisioningProperties = ImmutableMap.<String, Object>of(
-                "minRam", 4096,
+                "minRam", 8192,
                 "osFamily", "ubuntu",
                 "osVersionRegex", "12.*",
                 "securityGroups", securityGroup);
@@ -84,7 +90,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
         setAttribute(AMBARI_AGENT, addChild(EntitySpec.create(DynamicCluster.class)
                         //TODO should probably change option to hadoop cluster size
-                        .configure(DynamicCluster.INITIAL_SIZE, initialSize - 1)
+                        .configure(DynamicCluster.INITIAL_SIZE, initialClusterSize)
                         .configure(DynamicCluster.MEMBER_SPEC, agentEntitySpec)
                         .displayName("All Nodes")
         ));
@@ -105,10 +111,25 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
             for (String host : event.getValue()) {
                 registeredHosts.putIfAbsent(host, true);
             }
+            if (registeredHosts.size() == initialClusterSize && !clusterCreationInitialised.getAndSet(true)) {
+//                createCluster();
+            }
         }
     };
 
     private void createCluster() {
-        getAttribute(AMBARI_SERVER).installHDP("Cluster1", "mybp", ImmutableList.<String>copyOf(registeredHosts.keySet()), ImmutableList.<String>of("ZOOKEEPER", "HDFS"));
+        getAttribute(AMBARI_SERVER).waitForServiceUp();
+        List<String> services = getConfig(HADOOP_SERVICES);
+
+        LOG.debug("About to create cluster with services: " + services);
+        if (services.size() > 0) {
+            getAttribute(AMBARI_SERVER).installHDP("Cluster1", "mybp", getListOfHosts(), services);
+        } else {
+            getAttribute(AMBARI_SERVER).installHDP("Cluster1", "mybp", getListOfHosts(), DEFAULT_SERVICES);
+        }
+    }
+
+    private ImmutableList<String> getListOfHosts() {
+        return ImmutableList.<String>copyOf(registeredHosts.keySet());
     }
 }
