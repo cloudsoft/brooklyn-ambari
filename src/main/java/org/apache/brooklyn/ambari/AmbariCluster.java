@@ -34,6 +34,8 @@ import brooklyn.util.flags.SetFromFlag;
 import com.google.common.reflect.TypeToken;
 import org.apache.brooklyn.ambari.server.AmbariServer;
 
+import java.util.List;
+
 @Catalog(name = "Ambari Cluster", description = "Ambari Cluster: Made up of one or more Ambari Server and One or more Ambari Agents")
 @ImplementedBy(AmbariClusterImpl.class)
 public interface AmbariCluster extends Entity, Startable {
@@ -43,6 +45,9 @@ public interface AmbariCluster extends Entity, Startable {
 
     @SetFromFlag("securityGroup")
     public static ConfigKey<String> SECURITY_GROUP = ConfigKeys.newStringConfigKey("securityGroup", "Security group to be shared by agents and server", "");
+
+    @SetFromFlag("services")
+    public static ConfigKey<List<String>> HADOOP_SERVICES = ConfigKeys.newConfigKey(new TypeToken<List<String>>() {}, "services", "List of services to deploy to Hadoop Cluster");
 
     public static ConfigKey<EntitySpec<? extends AmbariServer>> SERVER_SPEC = BasicConfigKey.builder(new TypeToken<EntitySpec<? extends AmbariServer>>() {})
             .name("foo.bar.baz")
