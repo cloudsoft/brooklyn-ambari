@@ -12,11 +12,12 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.LinkedList;
+import java.util.List;
 
 import static org.testng.Assert.*;
 
 public class AmbariClusterImplWithManagementContextTest extends BrooklynAppUnitTestSupport {
-/*
+    /*
 
     private AmbariCluster entity;
 

@@ -10,7 +10,7 @@ This creates a tarball with a full standalone application which can be installed
 
 It also installs an unpacked version which you can run locally:
  
-     cd target/org.apache.brooklyn.brooklyn-ambari-1.0-SNAPSHOT-dist/org.apache.brooklyn.brooklyn-ambari-1.0-SNAPSHOT
+     cd target/org.apache.brooklyn.brooklyn-ambari-0.1-SNAPSHOT-dist/org.apache.brooklyn.brooklyn-ambari-1.0-SNAPSHOT
      ./start.sh launch
 
 For more information see the README (or `./start.sh help`) in that directory.

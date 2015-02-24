@@ -26,11 +26,6 @@ public class DefaultAmbariBluePrintTest {
     }
 
     @Test
-    public void testHostGroup2Contains7Components() {
-        assertTrue(getComponents(getHostGroup("host-group-2")).size() == 7);
-    }
-
-    @Test
     public void testHostGroup3ContainsDataNode() throws Exception {
        assertNotNull(getComponent(getHostGroup("host-group-3"), "DATANODE"));
     }
