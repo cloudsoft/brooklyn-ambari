@@ -18,22 +18,23 @@
  */
 package org.apache.brooklyn.ambari.rest;
 
-import brooklyn.util.http.HttpToolResponse;
-
 import java.text.MessageFormat;
 
+import brooklyn.util.http.HttpToolResponse;
 
-public class AmbariApiError extends RuntimeException {
+
+public class AmbariApiException extends RuntimeException {
 
     static final String ERROR_MESSAGE =
-            "Unnaceptable Response Code from Ambari Rest API {0}\n" +
+            "Unacceptable Response Code from Ambari Rest API {0}\n" +
                     "Message from Server {1}";
 
     static final MessageFormat messageFormat = new MessageFormat(ERROR_MESSAGE);
 
-    private HttpToolResponse httpToolResponse;
+    private final HttpToolResponse httpToolResponse;
 
-    public AmbariApiError(HttpToolResponse httpToolResponse) {
+    public AmbariApiException(HttpToolResponse httpToolResponse) {
         super(messageFormat.format(ERROR_MESSAGE, httpToolResponse.getContentAsString(), Integer.toString(httpToolResponse.getResponseCode())));
+        this.httpToolResponse = httpToolResponse;
     }
 }

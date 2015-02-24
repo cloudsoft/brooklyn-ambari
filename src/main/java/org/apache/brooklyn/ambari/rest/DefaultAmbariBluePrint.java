@@ -18,20 +18,22 @@
  */
 package org.apache.brooklyn.ambari.rest;
 
-import brooklyn.util.collections.Jsonya;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import org.apache.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.Blueprint;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.Blueprint;
+
+import brooklyn.util.collections.Jsonya;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 public class DefaultAmbariBluePrint implements AsMap {
 
     private final List<HostGroup> hostGroups = new LinkedList<HostGroup>();
-    private ImmutableMap<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
-    private ImmutableList configurations = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
+    private Map<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
+    private List configurations = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
 
     public static DefaultAmbariBluePrint createBlueprintFromRecommendation(Blueprint blueprint) {
         return new DefaultAmbariBluePrint(blueprint);

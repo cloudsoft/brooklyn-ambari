@@ -18,18 +18,20 @@
  */
 package org.apache.brooklyn.ambari.rest;
 
-import brooklyn.util.collections.Jsonya;
-import com.google.common.collect.ImmutableMap;
-import org.apache.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding;
+import static org.apache.brooklyn.ambari.rest.DefaultAmbariBluePrint.toMaps;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.brooklyn.ambari.rest.DefaultAmbariBluePrint.toMaps;
+import org.apache.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding;
+
+import brooklyn.util.collections.Jsonya;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
- * Created by duncangrant on 22/01/15.
+ * @author duncangrant
  */
 public class DefaultBluePrintClusterBinding implements AsMap {
     private List<AsMap> hostGroups = new LinkedList<AsMap>();
@@ -39,7 +41,6 @@ public class DefaultBluePrintClusterBinding implements AsMap {
         for (BlueprintClusterBinding.HostGroup hostGroup : blueprintClusterBinding.host_groups) {
             hostGroups.add(new HostGroup(hostGroup));
         }
-
     }
 
     public static DefaultBluePrintClusterBinding createFromRecommendation(RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding blueprintClusterBinding) {
@@ -79,7 +80,7 @@ public class DefaultBluePrintClusterBinding implements AsMap {
 
         private class Host implements AsMap {
 
-            private final ImmutableMap hostParams;
+            private final Map hostParams;
 
             public Host(Map host) {
                 hostParams = ImmutableMap.copyOf(host);

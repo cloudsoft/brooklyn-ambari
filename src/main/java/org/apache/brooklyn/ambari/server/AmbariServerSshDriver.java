@@ -18,16 +18,16 @@
  */
 package org.apache.brooklyn.ambari.server;
 
+import static brooklyn.util.ssh.BashCommands.installPackage;
+
+import org.apache.brooklyn.ambari.AmbariInstallHelper;
+import org.apache.brooklyn.ambari.DefaultAmbariInstallHelper;
+
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.java.JavaSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.collections.MutableMap;
 import brooklyn.util.ssh.BashCommands;
-import org.apache.brooklyn.ambari.AmbariInstallHelper;
-import org.apache.brooklyn.ambari.DefaultAmbariInstallHelper;
-import org.apache.brooklyn.ambari.server.AmbariServerDriver;
-
-import static brooklyn.util.ssh.BashCommands.installPackage;
 
 public class AmbariServerSshDriver extends JavaSoftwareProcessSshDriver implements AmbariServerDriver {
 
@@ -74,10 +74,5 @@ public class AmbariServerSshDriver extends JavaSoftwareProcessSshDriver implemen
                 .body.append(BashCommands.sudo("ambari-server start"))
                 .failOnNonZeroResultCode()
                 .execute();
-    }
-
-    @Override
-    public void postLaunch() {
-        super.postLaunch();
     }
 }

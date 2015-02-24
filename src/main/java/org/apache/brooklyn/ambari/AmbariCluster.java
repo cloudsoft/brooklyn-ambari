@@ -18,6 +18,10 @@
  */
 package org.apache.brooklyn.ambari;
 
+import java.util.List;
+
+import org.apache.brooklyn.ambari.server.AmbariServer;
+
 import brooklyn.catalog.Catalog;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
@@ -31,25 +35,23 @@ import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.event.basic.Sensors;
 import brooklyn.util.flags.SetFromFlag;
-import com.google.common.reflect.TypeToken;
-import org.apache.brooklyn.ambari.server.AmbariServer;
 
-import java.util.List;
+import com.google.common.reflect.TypeToken;
 
 @Catalog(name = "Ambari Cluster", description = "Ambari Cluster: Made up of one or more Ambari Server and One or more Ambari Agents")
 @ImplementedBy(AmbariClusterImpl.class)
 public interface AmbariCluster extends Entity, Startable {
 
     @SetFromFlag("initialSize")
-    public static ConfigKey<Integer> INITIAL_SIZE = ConfigKeys.newConfigKeyWithDefault(Cluster.INITIAL_SIZE, 5);
+    ConfigKey<Integer> INITIAL_SIZE = ConfigKeys.newConfigKeyWithDefault(Cluster.INITIAL_SIZE, 5);
 
     @SetFromFlag("securityGroup")
-    public static ConfigKey<String> SECURITY_GROUP = ConfigKeys.newStringConfigKey("securityGroup", "Security group to be shared by agents and server", "");
+    ConfigKey<String> SECURITY_GROUP = ConfigKeys.newStringConfigKey("securityGroup", "Security group to be shared by agents and server", "");
 
     @SetFromFlag("services")
-    public static ConfigKey<List<String>> HADOOP_SERVICES = ConfigKeys.newConfigKey(new TypeToken<List<String>>() {}, "services", "List of services to deploy to Hadoop Cluster");
+    ConfigKey<List<String>> HADOOP_SERVICES = ConfigKeys.newConfigKey(new TypeToken<List<String>>() {}, "services", "List of services to deploy to Hadoop Cluster");
 
-    public static ConfigKey<EntitySpec<? extends AmbariServer>> SERVER_SPEC = BasicConfigKey.builder(new TypeToken<EntitySpec<? extends AmbariServer>>() {})
+    ConfigKey<EntitySpec<? extends AmbariServer>> SERVER_SPEC = BasicConfigKey.builder(new TypeToken<EntitySpec<? extends AmbariServer>>() {})
             .name("foo.bar.baz")
             .defaultValue(EntitySpec.create(AmbariServer.class))
             .build();
@@ -57,7 +59,10 @@ public interface AmbariCluster extends Entity, Startable {
     AttributeSensor<AmbariServer> AMBARI_SERVER = Sensors.newSensor(
             AmbariServer.class, "ambaricluster.configservers", "Config servers");
 
-    AttributeSensor<DynamicCluster> AMBARI_AGENT = Sensors.newSensor(
+    AttributeSensor<DynamicCluster> AMBARI_AGENTS = Sensors.newSensor(
             DynamicCluster.class, "ambaricluster.configagents", "Config agents");
-
+    
+    AttributeSensor<Boolean> CLUSTER_SERVICES_INITIALISE_CALLED = Sensors.newBooleanSensor("ambari.cluster.servicesInitialiseCalled");
+    
+    void installServices();
 }

@@ -105,14 +105,14 @@ public class DefaultAmbariApiHelper implements AmbariApiHelper {
         ImmutableMap<String, String> headers = ImmutableMap.of("x-requested-by", "bob", HttpHeaders.AUTHORIZATION, HttpTool.toBasicAuthorizationValue(usernamePasswordCredentials));
         //TODO should handle failure
         HttpToolResponse httpToolResponse = HttpTool.httpPost(httpClient, uri, headers, body);
-        assertAcceptableReturnCode(httpToolResponse);
+        checkAcceptableReturnCode(httpToolResponse);
         return httpToolResponse;
     }
 
-    private void assertAcceptableReturnCode(HttpToolResponse httpToolResponse) {
+    private void checkAcceptableReturnCode(HttpToolResponse httpToolResponse) {
         ImmutableList<Integer> list = ImmutableList.<Integer>of(200, 201, 202);
         if (!list.contains(httpToolResponse.getResponseCode())) {
-            throw new AmbariApiError(httpToolResponse);
+            throw new AmbariApiException(httpToolResponse);
         }
     }
 

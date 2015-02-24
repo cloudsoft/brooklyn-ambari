@@ -48,7 +48,7 @@ class AmbariAgentSshDriver extends JavaSoftwareProcessSshDriver implements Ambar
         return newScript(MutableMap.of("usePidFile", false), CHECK_RUNNING).body.append(sudo("ambari-agent status")).execute() == 0;
     }
 
-@Override
+    @Override
     public void stop() {
         newScript(STOPPING).body.append(sudo("ambari-agent stop")).execute();
     }

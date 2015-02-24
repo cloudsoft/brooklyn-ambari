@@ -18,6 +18,8 @@
  */
 package org.apache.brooklyn.ambari.server;
 
+import java.util.List;
+
 import brooklyn.catalog.Catalog;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
@@ -25,25 +27,30 @@ import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.java.UsesJava;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.AttributeSensor;
-import brooklyn.event.basic.BasicAttributeSensor;
+import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
+import brooklyn.event.basic.Sensors;
 
-import java.util.List;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
 
 @Catalog(name = "Ambari Server", description = "Ambari Server: part of an ambari cluster used to install and monitor a hadoop cluster.")
 @ImplementedBy(AmbariServerImpl.class)
 public interface AmbariServer extends SoftwareProcess, UsesJava {
 
-    AttributeSensor<List<String>> REGISTERED_HOSTS = new BasicAttributeSensor(
-            List.class, "registered.hosts.list", "List of registered agents");
+    // TODO this value is read-only; changing its config value is not reflected in the deployed artifacts!
+    PortAttributeSensorAndConfigKey HTTP_PORT =
+            new PortAttributeSensorAndConfigKey("ambari.server.httpPort", "HTTP Port", "8080");
+
+    AttributeSensor<List<String>> REGISTERED_HOSTS = Sensors.newSensor(
+            new TypeToken<List<String>>() {},
+            "ambari.server.registeredHosts", 
+            "List of registered agent names");
+
+    AttributeSensor<Boolean> URL_REACHABLE = Sensors.newBooleanSensor("ambari.server.urlReachable");
 
     /**
      * @throws IllegalStateException if times out.
      */
     public void waitForServiceUp();
-
-    @Effector(description = "Creates a cluster")
-    public void createCluster(@EffectorParam(name = "Cluster name") String cluster);
 
     @Effector(description = "Adds a host to a cluster")
     public void addHostToCluster(@EffectorParam(name = "Cluster name") String cluster,

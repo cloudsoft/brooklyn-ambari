@@ -1,5 +1,11 @@
 package org.apache.brooklyn.ambari.server;
 
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Map;
+
 import org.apache.brooklyn.ambari.rest.DefaultAmbariBluePrintTest;
 import org.apache.brooklyn.ambari.rest.DefaultBluePrintClusterBinding;
 import org.apache.brooklyn.ambari.rest.RecommendationResponse;
@@ -7,22 +13,16 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.List;
-import java.util.Map;
-
-import static org.testng.Assert.*;
-
 public class DefaultBluePrintClusterBindingTest {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private Map mapOfJsonFromDefaultAmbariClusterBinding;
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun=true)
     public void setUp() throws Exception {
         DefaultBluePrintClusterBinding defaultBluePrintClusterBinding = DefaultBluePrintClusterBinding.createFromRecommendation(createClusterBindingFromExampleJson());
         defaultBluePrintClusterBinding.setBluePrintName("bp1");
         mapOfJsonFromDefaultAmbariClusterBinding = objectMapper.readValue(defaultBluePrintClusterBinding.toJson(), Map.class);
-
     }
 
     @Test

@@ -1,0 +1,11 @@
+location:
+  aws-ec2:us-east-1:
+    minRam: 8192
+    osFamily: ubuntu
+    osVersionRegex: 12.*
+
+services:
+- type: org.apache.brooklyn.ambari.AmbariCluster
+  brooklyn.config:
+    securityGroup: test-ambari
+    initialSize: 5

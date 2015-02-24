@@ -18,6 +18,20 @@
  */
 package org.apache.brooklyn.ambari.server;
 
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
+import org.apache.brooklyn.ambari.rest.AmbariApiHelper;
+import org.apache.brooklyn.ambari.rest.DefaultAmbariApiHelper;
+import org.apache.brooklyn.ambari.rest.DefaultAmbariBluePrint;
+import org.apache.brooklyn.ambari.rest.DefaultBluePrintClusterBinding;
+import org.apache.brooklyn.ambari.rest.RecommendationResponse;
+import org.apache.http.auth.UsernamePasswordCredentials;
+
+import brooklyn.enricher.Enrichers;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.SoftwareProcessImpl;
@@ -27,6 +41,7 @@ import brooklyn.event.feed.http.HttpValueFunctions;
 import brooklyn.location.access.BrooklynAccessUtils;
 import brooklyn.util.guava.Functionals;
 import brooklyn.util.http.HttpTool;
+
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
@@ -34,14 +49,6 @@ import com.google.common.net.HostAndPort;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.jayway.jsonpath.JsonPath;
-import org.apache.brooklyn.ambari.rest.*;
-import org.apache.http.auth.UsernamePasswordCredentials;
-
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServer {
 
@@ -60,8 +67,7 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     protected void connectSensors() {
         super.connectSensors();
 
-        //TODO need configured param not 8080
-        HostAndPort hp = BrooklynAccessUtils.getBrooklynAccessibleAddress(this, 8080);
+        HostAndPort hp = BrooklynAccessUtils.getBrooklynAccessibleAddress(this, getAttribute(HTTP_PORT));
 
         String ambariUri = String.format("http://%s:%d/", hp.getHostText(), hp.getPort());
         setAttribute(Attributes.MAIN_URI, URI.create(ambariUri));
@@ -70,10 +76,15 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
                 .entity(this)
                 .period(500, TimeUnit.MILLISECONDS)
                 .baseUri(ambariUri)
-                .poll(new HttpPollConfig<Boolean>(SERVICE_UP)
+                .poll(new HttpPollConfig<Boolean>(URL_REACHABLE)
                         .onSuccess(HttpValueFunctions.responseCodeEquals(200))
                         .onFailureOrException(Functions.constant(false)))
                 .build();
+
+        addEnricher(Enrichers.builder().updatingMap(Attributes.SERVICE_NOT_UP_INDICATORS)
+                .from(URL_REACHABLE)
+                .computing(Functionals.ifNotEquals(true).value("URL not reachable") )
+                .build());
 
         hostsHttpFeed = HttpFeed.builder()
                 .entity(this)
@@ -82,10 +93,9 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
                 .credentials("admin", "admin")
                 .header(HttpHeaders.AUTHORIZATION, HttpTool.toBasicAuthorizationValue(usernamePasswordCredentials))
                 .poll(new HttpPollConfig<List<String>>(REGISTERED_HOSTS)
-                                .onSuccess(Functionals.chain(HttpValueFunctions.jsonContents(), getHosts()))
-                                .onFailureOrException(Functions.<List<String>>constant(ImmutableList.<String>of()))
-                ).build();
-
+                        .onSuccess(Functionals.chain(HttpValueFunctions.jsonContents(), getHosts()))
+                        .onFailureOrException(Functions.<List<String>>constant(ImmutableList.<String>of())))
+                .build();
     }
 
     Function<JsonElement, List<String>> getHosts() {
@@ -105,11 +115,7 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
         super.disconnectSensors();
 
         if (serviceUpHttpFeed != null) serviceUpHttpFeed.stop();
-    }
-
-    @Override
-    public void createCluster(String cluster) {
-        waitForServiceUp();
+        if (hostsHttpFeed != null) hostsHttpFeed.stop();
     }
 
     @Override
