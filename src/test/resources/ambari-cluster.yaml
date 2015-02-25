@@ -9,4 +9,22 @@ services:
   name: Ambari Cluster
   brooklyn.config:
     securityGroup: test-ambari
-    initialSize: 5
+    initialSize: 3
+    services:
+    - FALCON
+    - FLUME
+    - GANGLIA
+    - HBASE
+    - HDFS
+    - KAFKA
+    - KERBEROS
+    - MAPREDUCE2
+    - NAGIOS
+    - OOZIE
+    - PIG
+    - SLIDER
+    - SQOOP
+    - STORM
+    - TEZ
+    - YARN
+    - ZOOKEEPER
