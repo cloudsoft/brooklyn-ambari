@@ -19,8 +19,7 @@
 package io.brooklyn.ambari.server;
 
 import static brooklyn.util.ssh.BashCommands.installPackage;
-import io.brooklyn.ambari.AmbariInstallHelper;
-import io.brooklyn.ambari.DefaultAmbariInstallHelper;
+import io.brooklyn.ambari.AmbariInstallCommands;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.java.JavaSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
@@ -29,7 +28,7 @@ import brooklyn.util.ssh.BashCommands;
 
 public class AmbariServerSshDriver extends JavaSoftwareProcessSshDriver implements AmbariServerDriver {
 
-    private final AmbariInstallHelper ambariInstallHelper = new DefaultAmbariInstallHelper();
+    private final AmbariInstallCommands ambariInstallHelper = new AmbariInstallCommands();
 
     public AmbariServerSshDriver(EntityLocal entity, SshMachineLocation machine) {
         super(entity, machine);

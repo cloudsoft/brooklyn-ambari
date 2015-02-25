@@ -28,7 +28,7 @@ import brooklyn.location.OsDetails;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.ssh.BashCommands;
 
-public class DefaultAmbariInstallHelper implements AmbariInstallHelper {
+public class AmbariInstallCommands {
 
     private static final String CENTOS_6_AMBARI_REPO_LOCATION = "http://public-repo-1.hortonworks.com/ambari/centos6/1.x/updates/1.7.0/ambari.repo";
     private static final String CENTOS_REPO_LIST_LOCATION = "/etc/yum.repos.d/ambari.repo";
@@ -39,16 +39,13 @@ public class DefaultAmbariInstallHelper implements AmbariInstallHelper {
     private static final String UBUNTU_REPO_LIST_LOCATION = "/etc/apt/sources.list.d/ambari.list";
 
     private static final String UBUNTU_AMBARI_REPO_LOCATION = "http://public-repo-1.hortonworks.com/ambari/ubuntu12/1.x/updates/1.7.0/ambari.list";
-    private static final String INSTALL_NTP = installExecutable("ntp");
 
-    public DefaultAmbariInstallHelper() {
+    public AmbariInstallCommands() {
     }
 
-    @Override
     public String installAmbariRequirements(SshMachineLocation machine) {
         return BashCommands.chainGroup(BashCommands.INSTALL_CURL,
-                // Should be a bash command?
-                INSTALL_NTP,
+                installExecutable("ntp"),
                 createCommandToAddAmbariToRepositoriesList(machine));
     }
 

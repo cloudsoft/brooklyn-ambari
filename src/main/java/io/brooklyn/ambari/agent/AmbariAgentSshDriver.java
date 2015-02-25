@@ -18,7 +18,7 @@
  */
 package io.brooklyn.ambari.agent;
 
-import io.brooklyn.ambari.DefaultAmbariInstallHelper;
+import io.brooklyn.ambari.AmbariInstallCommands;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.java.JavaSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
@@ -33,7 +33,7 @@ import static java.lang.String.format;
 
 class AmbariAgentSshDriver extends JavaSoftwareProcessSshDriver implements AmbariAgentDriver {
     public static final Logger log = LoggerFactory.getLogger(AmbariAgentSshDriver.class);
-    private final DefaultAmbariInstallHelper defaultAmbariInstallHelper = new DefaultAmbariInstallHelper();
+    private final AmbariInstallCommands defaultAmbariInstallHelper = new AmbariInstallCommands();
 
     public AmbariAgentSshDriver(EntityLocal entity, SshMachineLocation machine) {
         super(entity, machine);
