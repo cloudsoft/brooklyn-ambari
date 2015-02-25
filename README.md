@@ -34,7 +34,7 @@ it and run it as usual.  For more information on IDE support, visit:
     name: ambari cluster
     location: jclouds:aws-ec2:eu-west-1
     services:
-    - type: org.apache.brooklyn.ambari.ambaricluster
+    - type: io.brooklyn.ambari.AmbariCluster
       securityGroup: hdpSecurityGroup
       initialSize: 5
 

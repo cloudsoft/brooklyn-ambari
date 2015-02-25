@@ -5,7 +5,8 @@ location:
     osVersionRegex: 12.*
 
 services:
-- type: org.apache.brooklyn.ambari.AmbariCluster
+- type: io.brooklyn.ambari.AmbariCluster
+  name: Ambari Cluster
   brooklyn.config:
     securityGroup: test-ambari
     initialSize: 5
