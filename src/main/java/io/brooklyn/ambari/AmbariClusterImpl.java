@@ -133,7 +133,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
         List<String> hosts = getAttribute(AMBARI_SERVER).getAttribute(AmbariServer.REGISTERED_HOSTS);
 
         LOG.debug("About to create cluster with services: " + services);
-        if (services.size() > 0) {
+        if (services != null && services.size() > 0) {
             getAttribute(AMBARI_SERVER).installHDP("Cluster1", "mybp", hosts, services);
         } else {
             getAttribute(AMBARI_SERVER).installHDP("Cluster1", "mybp", hosts, DEFAULT_SERVICES);
