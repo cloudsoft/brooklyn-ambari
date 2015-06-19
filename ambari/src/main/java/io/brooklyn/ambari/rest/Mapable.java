@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Created by duncangrant on 22/01/15.
  */
-public interface AsMap {
+public interface Mapable {
 
     public Map asMap();
 }
