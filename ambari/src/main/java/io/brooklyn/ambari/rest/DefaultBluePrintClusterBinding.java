@@ -18,7 +18,6 @@
  */
 package io.brooklyn.ambari.rest;
 
-import static io.brooklyn.ambari.rest.DefaultAmbariBluePrint.toMaps;
 import io.brooklyn.ambari.rest.RecommendationResponse.BlueprintClusterBinding;
 import io.brooklyn.ambari.rest.RecommendationResponse.ClusterBindingHostGroup;
 
@@ -52,8 +51,10 @@ public class DefaultBluePrintClusterBinding implements Mapable {
     }
 
     @Override
-    public Map asMap() {
-        return ImmutableMap.of("blueprint", bluePrintName, "default_password", "admin", "host_groups", toMaps(hostGroups));
+    public Map<?,?> asMap() {
+        return ImmutableMap.of("blueprint", bluePrintName, 
+                "default_password", "admin", 
+                "host_groups", Mapables.toMaps(hostGroups));
     }
 
     public void setBluePrintName(String bluePrintName) {
@@ -67,29 +68,29 @@ public class DefaultBluePrintClusterBinding implements Mapable {
 
         public HostGroup(ClusterBindingHostGroup hostGroup) {
             name = hostGroup.name;
-            for (Map host : hostGroup.hosts) {
+            for (Map<?,?> host : hostGroup.hosts) {
                 hosts.add(new Host(host));
             }
         }
 
         @Override
-        public Map asMap() {
-            return ImmutableMap.of("name", name, "hosts", toMaps(hosts));
+        public Map<?,?> asMap() {
+            return ImmutableMap.of("name", name, "hosts", Mapables.toMaps(hosts));
 
         }
+    }
+    
+    private static class Host implements Mapable {
 
-        private class Host implements Mapable {
+        private final Map<?,?> hostParams;
 
-            private final Map hostParams;
+        public Host(Map<?,?> host) {
+            hostParams = ImmutableMap.copyOf(host);
+        }
 
-            public Host(Map host) {
-                hostParams = ImmutableMap.copyOf(host);
-            }
-
-            @Override
-            public Map asMap() {
-                return hostParams;
-            }
+        @Override
+        public Map<?,?> asMap() {
+            return hostParams;
         }
     }
 }

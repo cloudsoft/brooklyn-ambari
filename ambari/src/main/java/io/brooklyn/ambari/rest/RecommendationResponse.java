@@ -38,8 +38,8 @@ public class RecommendationResponse {
         public String href;
         public String[] hosts;
         public String[] services;
-        public Map Recommendation;
-        public Map Versions;
+        public Map<?,?> Recommendation;
+        public Map<?,?> Versions;
         public Recommendations recommendations;
     }
     
@@ -49,13 +49,13 @@ public class RecommendationResponse {
     }
     
     public static class Blueprint {
-        public Map configurations;
+        public Map<?,?> configurations;
         public HostGroup[] host_groups;
     }
     
     public static class HostGroup {
         public String name;
-        public Map[] components;
+        public Map<?,?>[] components;
     }
 
     public static class BlueprintClusterBinding {
@@ -64,6 +64,6 @@ public class RecommendationResponse {
     
     public static class ClusterBindingHostGroup {
         public String name;
-        public Map[] hosts;
+        public Map<?,?>[] hosts;
     }
 }

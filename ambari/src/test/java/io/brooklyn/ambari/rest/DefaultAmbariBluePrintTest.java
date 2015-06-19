@@ -13,13 +13,18 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 public class DefaultAmbariBluePrintTest {
 
     private Map mapOfJsonFromDefaultAmbariBlueprint;
     private ObjectMapper objectMapper = new ObjectMapper();
     @BeforeMethod
     public void setUp() throws Exception {
-        DefaultAmbariBluePrint defaultAmbariBluePrint = DefaultAmbariBluePrint.createBlueprintFromRecommendation(createBlueprintFromExampleJson());
+        Map<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
+        List<? extends Map<?, ?>> configurations = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
+        DefaultAmbariBluePrint defaultAmbariBluePrint = DefaultAmbariBluePrint.createBlueprintFromRecommendation(createBlueprintFromExampleJson(), baseBlueprints, configurations);
         mapOfJsonFromDefaultAmbariBlueprint = objectMapper.readValue(defaultAmbariBluePrint.toJson(), Map.class);
 
     }

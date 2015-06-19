@@ -52,8 +52,8 @@ public class DefaultAmbariApiHelper implements AmbariApiHelper {
     }
     
     @Override
-    public void createClusterAPI(String cluster) {
-        String json = Jsonya.newInstance().at("Clusters").put("version", "HDP-2.2").root().toString();
+    public void createClusterAPI(String cluster, String version) {
+        String json = Jsonya.newInstance().at("Clusters").put("version", version).root().toString();
         post(Optional.of(json), "/api/v1/clusters/{cluster}", cluster);
     }
 

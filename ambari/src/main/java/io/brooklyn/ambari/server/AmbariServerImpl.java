@@ -26,6 +26,7 @@ import io.brooklyn.ambari.rest.RecommendationResponse;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -46,6 +47,7 @@ import brooklyn.util.http.HttpTool;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
@@ -60,7 +62,7 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     private AmbariApiHelper ambariApiHelper;
 
     @Override
-    public Class getDriverInterface() {
+    public Class<AmbariServerDriver> getDriverInterface() {
         return AmbariServerDriver.class;
     }
 
@@ -151,8 +153,11 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     public void installHDP(String clusterName, String blueprintName, List<String> hosts, List<String> services) {
         waitForServiceUp();
         RecommendationResponse recommendations = ambariApiHelper.getRecommendations(hosts, services, "HDP", "2.2");
+        
+        Map<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
+        List<? extends Map<?, ?>> configurations = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
         ambariApiHelper.createBlueprint(blueprintName, DefaultAmbariBluePrint.createBlueprintFromRecommendation(
-                recommendations.getBlueprint()));
+                recommendations.getBlueprint(), baseBlueprints, configurations));
         ambariApiHelper.createCluster(clusterName, blueprintName, DefaultBluePrintClusterBinding.createFromRecommendation(
                 recommendations.getBlueprintClusterBinding()));
     }

@@ -24,7 +24,7 @@ import java.util.List;
  * Created by duncangrant on 07/01/15.
  */
 public interface AmbariApiHelper {
-    public void createClusterAPI(String cluster);
+    public void createClusterAPI(String cluster, String version);
 
     public void addHostToCluster(String cluster, String host);
 

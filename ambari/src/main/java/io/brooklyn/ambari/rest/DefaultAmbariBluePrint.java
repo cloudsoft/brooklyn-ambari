@@ -26,20 +26,22 @@ import java.util.Map;
 
 import brooklyn.util.collections.Jsonya;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 public class DefaultAmbariBluePrint implements Mapable {
 
-    private final List<HostGroup> hostGroups = new LinkedList<HostGroup>();
-    private Map<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
-    private List configurations = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
+    private final List<HostGroup> hostGroups;
+    private final Map<String, String> baseBlueprints;
+    private final List<? extends Map<?,?>> configurations;
 
-    public static DefaultAmbariBluePrint createBlueprintFromRecommendation(Blueprint blueprint) {
-        return new DefaultAmbariBluePrint(blueprint);
+    public static DefaultAmbariBluePrint createBlueprintFromRecommendation(Blueprint blueprint, Map<String, String> baseBlueprints, List<? extends Map<?,?>> configurations) {
+        return new DefaultAmbariBluePrint(blueprint, baseBlueprints, configurations);
     }
 
-    private DefaultAmbariBluePrint(Blueprint blueprint) {
+    private DefaultAmbariBluePrint(Blueprint blueprint, Map<String, String> baseBlueprints, List<? extends Map<?,?>> configurations) {
+        this.baseBlueprints = baseBlueprints;
+        this.configurations = configurations;
+        this.hostGroups = new LinkedList<HostGroup>();
         for (RecommendationResponse.HostGroup hostGroup : blueprint.host_groups) {
             hostGroups.add(new HostGroup(hostGroup));
         }
@@ -49,27 +51,18 @@ public class DefaultAmbariBluePrint implements Mapable {
         return Jsonya.newInstance().add(this.asMap()).root().toString();
     }
 
-    public Map asMap() {
-        return ImmutableMap.of("host_groups", toMaps(hostGroups), "configurations", configurations, "Blueprints", baseBlueprints);
-    }
-
-    public static List<Map> toMaps(List<? extends Mapable> host_groups) {
-        LinkedList<Map> maps = new LinkedList<Map>();
-        for (Mapable host_group : host_groups) {
-            maps.add(host_group.asMap());
-        }
-        return ImmutableList.<Map>copyOf(maps);
+    public Map<?,?> asMap() {
+        return ImmutableMap.of("host_groups", Mapables.toMaps(hostGroups), "configurations", configurations, "Blueprints", baseBlueprints);
     }
 
     private static class HostGroup implements Mapable {
 
         private final String name;
-
         private final List<Component> components = new LinkedList<Component>();
 
         public HostGroup(RecommendationResponse.HostGroup hostGroup) {
             name = hostGroup.name;
-            for (Map component : hostGroup.components) {
+            for (Map<?,?> component : hostGroup.components) {
                 if (!component.get("name").equals("ZKFC")) {
                     components.add(new Component(component));
                 }
@@ -77,21 +70,21 @@ public class DefaultAmbariBluePrint implements Mapable {
         }
 
         @Override
-        public Map asMap() {
-            return ImmutableMap.of("name", name, "components", toMaps(components));
+        public Map<?,?> asMap() {
+            return ImmutableMap.of("name", name, "components", Mapables.toMaps(components));
         }
     }
 
     private static class Component implements Mapable {
 
-        private final Map<String, String> componentParams;
+        private final Map<?, ?> componentParams;
 
-        public Component(Map component) {
-            componentParams = ImmutableMap.<String, String>copyOf(component);
+        public Component(Map<?, ?> component) {
+            componentParams = ImmutableMap.copyOf(component);
         }
 
         @Override
-        public Map asMap() {
+        public Map<?,?> asMap() {
             return componentParams;
         }
     }
