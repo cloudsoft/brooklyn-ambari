@@ -27,14 +27,14 @@ import com.google.common.collect.ImmutableList;
 /**
  * Created by duncangrant on 22/01/15.
  */
-public interface Mapable {
+public interface Mappable {
 
     public Map<?,?> asMap();
     
-    public class Mapables {
-        public static List<Map<?,?>> toMaps(List<? extends Mapable> host_groups) {
+    public class Mappables {
+        public static List<Map<?,?>> toMaps(List<? extends Mappable> host_groups) {
             LinkedList<Map<?,?>> maps = new LinkedList<Map<?,?>>();
-            for (Mapable host_group : host_groups) {
+            for (Mappable host_group : host_groups) {
                 maps.add(host_group.asMap());
             }
             return ImmutableList.<Map<?,?>>copyOf(maps);

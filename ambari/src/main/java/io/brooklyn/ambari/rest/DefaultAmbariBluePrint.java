@@ -28,7 +28,7 @@ import brooklyn.util.collections.Jsonya;
 
 import com.google.common.collect.ImmutableMap;
 
-public class DefaultAmbariBluePrint implements Mapable {
+public class DefaultAmbariBluePrint implements Mappable {
 
     private final List<HostGroup> hostGroups;
     private final Map<String, String> baseBlueprints;
@@ -52,10 +52,10 @@ public class DefaultAmbariBluePrint implements Mapable {
     }
 
     public Map<?,?> asMap() {
-        return ImmutableMap.of("host_groups", Mapables.toMaps(hostGroups), "configurations", configurations, "Blueprints", baseBlueprints);
+        return ImmutableMap.of("host_groups", Mappables.toMaps(hostGroups), "configurations", configurations, "Blueprints", baseBlueprints);
     }
 
-    private static class HostGroup implements Mapable {
+    private static class HostGroup implements Mappable {
 
         private final String name;
         private final List<Component> components = new LinkedList<Component>();
@@ -71,11 +71,11 @@ public class DefaultAmbariBluePrint implements Mapable {
 
         @Override
         public Map<?,?> asMap() {
-            return ImmutableMap.of("name", name, "components", Mapables.toMaps(components));
+            return ImmutableMap.of("name", name, "components", Mappables.toMaps(components));
         }
     }
 
-    private static class Component implements Mapable {
+    private static class Component implements Mappable {
 
         private final Map<?, ?> componentParams;
 

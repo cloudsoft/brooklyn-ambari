@@ -32,8 +32,8 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author duncangrant
  */
-public class DefaultBluePrintClusterBinding implements Mapable {
-    private List<Mapable> hostGroups = new LinkedList<Mapable>();
+public class DefaultBluePrintClusterBinding implements Mappable {
+    private List<Mappable> hostGroups = new LinkedList<Mappable>();
     private String bluePrintName;
 
     public DefaultBluePrintClusterBinding(BlueprintClusterBinding blueprintClusterBinding) {
@@ -54,14 +54,14 @@ public class DefaultBluePrintClusterBinding implements Mapable {
     public Map<?,?> asMap() {
         return ImmutableMap.of("blueprint", bluePrintName, 
                 "default_password", "admin", 
-                "host_groups", Mapables.toMaps(hostGroups));
+                "host_groups", Mappables.toMaps(hostGroups));
     }
 
     public void setBluePrintName(String bluePrintName) {
         this.bluePrintName = bluePrintName;
     }
 
-    private static class HostGroup implements Mapable {
+    private static class HostGroup implements Mappable {
 
         private final String name;
         private final List<Host> hosts = new LinkedList<Host>();
@@ -75,12 +75,12 @@ public class DefaultBluePrintClusterBinding implements Mapable {
 
         @Override
         public Map<?,?> asMap() {
-            return ImmutableMap.of("name", name, "hosts", Mapables.toMaps(hosts));
+            return ImmutableMap.of("name", name, "hosts", Mappables.toMaps(hosts));
 
         }
     }
     
-    private static class Host implements Mapable {
+    private static class Host implements Mappable {
 
         private final Map<?,?> hostParams;
 
