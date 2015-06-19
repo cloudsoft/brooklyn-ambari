@@ -25,16 +25,13 @@ import brooklyn.util.http.HttpToolResponse;
 
 public class AmbariApiException extends RuntimeException {
 
+    private static final long serialVersionUID = -4818661501394443750L;
+
     static final String ERROR_MESSAGE =
             "Unacceptable Response Code from Ambari Rest API {0}\n" +
                     "Message from Server {1}";
 
-    static final MessageFormat messageFormat = new MessageFormat(ERROR_MESSAGE);
-
-    private final HttpToolResponse httpToolResponse;
-
     public AmbariApiException(HttpToolResponse httpToolResponse) {
-        super(messageFormat.format(ERROR_MESSAGE, httpToolResponse.getContentAsString(), Integer.toString(httpToolResponse.getResponseCode())));
-        this.httpToolResponse = httpToolResponse;
+        super(MessageFormat.format(ERROR_MESSAGE, httpToolResponse.getContentAsString(), Integer.toString(httpToolResponse.getResponseCode())));
     }
 }

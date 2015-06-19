@@ -1,8 +1,8 @@
 package io.brooklyn.ambari.rest;
 
 import static org.testng.Assert.assertEquals;
-import io.brooklyn.ambari.rest.AmbariApiException;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.testng.annotations.Test;
@@ -15,7 +15,7 @@ public class AmbariApiErrorTest {
 
     @Test
     public void testNameFormat() throws Exception {
-        assertEquals(AmbariApiException.messageFormat.format(AmbariApiException.ERROR_MESSAGE, "fdsfs", "Dsfsd"), "Unacceptable Response Code from Ambari Rest API fdsfs\n" +
+        assertEquals(MessageFormat.format(AmbariApiException.ERROR_MESSAGE, "fdsfs", "Dsfsd"), "Unacceptable Response Code from Ambari Rest API fdsfs\n" +
                 "Message from Server Dsfsd");
     }
     
