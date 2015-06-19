@@ -1,16 +1,17 @@
 package io.brooklyn.ambari.rest;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import io.brooklyn.ambari.rest.DefaultAmbariBluePrint;
-import io.brooklyn.ambari.rest.RecommendationResponse;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import io.brooklyn.ambari.rest.RecommendationResponse.Blueprint;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.testng.Assert.*;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class DefaultAmbariBluePrintTest {
 
@@ -92,7 +93,7 @@ public class DefaultAmbariBluePrintTest {
         return (List<Map>) mapOfJsonFromDefaultAmbariBlueprint.get("host_groups");
     }
 
-    private RecommendationResponse.Resource.Recommendations.Blueprint createBlueprintFromExampleJson() throws java.io.IOException {
+    private Blueprint createBlueprintFromExampleJson() throws java.io.IOException {
         RecommendationResponse recommendationResponse = objectMapper.readValue(EXAMPLE_AMBARI_RECOMMENDATION_RESPONSE_JSON, RecommendationResponse.class);
         return recommendationResponse.getBlueprint();
     }

@@ -26,11 +26,11 @@ import java.util.Map;
 public class RecommendationResponse {
     public Resource[] resources;
 
-    public Resource.Recommendations.Blueprint getBlueprint() {
+    public Blueprint getBlueprint() {
         return resources != null && resources.length > 0 ?resources[0].recommendations.blueprint : null;
     }
 
-    public Resource.Recommendations.BlueprintClusterBinding getBlueprintClusterBinding() {
+    public BlueprintClusterBinding getBlueprintClusterBinding() {
         return resources != null && resources.length > 0 ? resources[0].recommendations.blueprint_cluster_binding: null;
     }
 
@@ -40,30 +40,30 @@ public class RecommendationResponse {
         public String[] services;
         public Map Recommendation;
         public Map Versions;
-        public Resource.Recommendations recommendations;
+        public Recommendations recommendations;
+    }
+    
+    public static class Recommendations {
+        public Blueprint blueprint;
+        public BlueprintClusterBinding blueprint_cluster_binding;
+    }
+    
+    public static class Blueprint {
+        public Map configurations;
+        public HostGroup[] host_groups;
+    }
+    
+    public static class HostGroup {
+        public String name;
+        public Map[] components;
+    }
 
-        public static class Recommendations {
-            public Resource.Recommendations.Blueprint blueprint;
-            public Resource.Recommendations.BlueprintClusterBinding blueprint_cluster_binding;
-
-            public static class Blueprint {
-                public Map configurations;
-                public Resource.Recommendations.Blueprint.HostGroup[] host_groups;
-
-                public static class HostGroup {
-                    public String name;
-                    public Map[] components;
-                }
-            }
-
-            public static class BlueprintClusterBinding {
-                public Resource.Recommendations.BlueprintClusterBinding.HostGroup[] host_groups;
-
-                static class HostGroup {
-                    public String name;
-                    public Map[] hosts;
-                }
-            }
-        }
+    public static class BlueprintClusterBinding {
+        public ClusterBindingHostGroup[] host_groups; 
+    }
+    
+    public static class ClusterBindingHostGroup {
+        public String name;
+        public Map[] hosts;
     }
 }

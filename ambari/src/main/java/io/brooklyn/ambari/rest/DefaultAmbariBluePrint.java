@@ -18,7 +18,7 @@
  */
 package io.brooklyn.ambari.rest;
 
-import io.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.Blueprint;
+import io.brooklyn.ambari.rest.RecommendationResponse.Blueprint;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +29,7 @@ import brooklyn.util.collections.Jsonya;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-public class DefaultAmbariBluePrint implements AsMap {
+public class DefaultAmbariBluePrint implements Mapable {
 
     private final List<HostGroup> hostGroups = new LinkedList<HostGroup>();
     private Map<String, String> baseBlueprints = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
@@ -40,7 +40,7 @@ public class DefaultAmbariBluePrint implements AsMap {
     }
 
     private DefaultAmbariBluePrint(Blueprint blueprint) {
-        for (Blueprint.HostGroup hostGroup : blueprint.host_groups) {
+        for (RecommendationResponse.HostGroup hostGroup : blueprint.host_groups) {
             hostGroups.add(new HostGroup(hostGroup));
         }
     }
@@ -53,21 +53,21 @@ public class DefaultAmbariBluePrint implements AsMap {
         return ImmutableMap.of("host_groups", toMaps(hostGroups), "configurations", configurations, "Blueprints", baseBlueprints);
     }
 
-    public static List<Map> toMaps(List<? extends AsMap> host_groups) {
+    public static List<Map> toMaps(List<? extends Mapable> host_groups) {
         LinkedList<Map> maps = new LinkedList<Map>();
-        for (AsMap host_group : host_groups) {
+        for (Mapable host_group : host_groups) {
             maps.add(host_group.asMap());
         }
         return ImmutableList.<Map>copyOf(maps);
     }
 
-    private static class HostGroup implements AsMap {
+    private static class HostGroup implements Mapable {
 
         private final String name;
 
         private final List<Component> components = new LinkedList<Component>();
 
-        public HostGroup(Blueprint.HostGroup hostGroup) {
+        public HostGroup(RecommendationResponse.HostGroup hostGroup) {
             name = hostGroup.name;
             for (Map component : hostGroup.components) {
                 if (!component.get("name").equals("ZKFC")) {
@@ -82,7 +82,7 @@ public class DefaultAmbariBluePrint implements AsMap {
         }
     }
 
-    private static class Component implements AsMap {
+    private static class Component implements Mapable {
 
         private final Map<String, String> componentParams;
 

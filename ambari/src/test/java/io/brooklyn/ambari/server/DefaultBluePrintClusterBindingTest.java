@@ -5,6 +5,7 @@ import static org.testng.Assert.assertTrue;
 import io.brooklyn.ambari.rest.DefaultAmbariBluePrintTest;
 import io.brooklyn.ambari.rest.DefaultBluePrintClusterBinding;
 import io.brooklyn.ambari.rest.RecommendationResponse;
+import io.brooklyn.ambari.rest.RecommendationResponse.BlueprintClusterBinding;
 
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class DefaultBluePrintClusterBindingTest {
         return (List<Map>) mapOfJsonFromDefaultAmbariClusterBinding.get("host_groups");
     }
 
-    private RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding createClusterBindingFromExampleJson() throws java.io.IOException {
+    private BlueprintClusterBinding createClusterBindingFromExampleJson() throws java.io.IOException {
         RecommendationResponse recommendationResponse = objectMapper.readValue(DefaultAmbariBluePrintTest.EXAMPLE_AMBARI_RECOMMENDATION_RESPONSE_JSON, RecommendationResponse.class);
         return recommendationResponse.getBlueprintClusterBinding();
     }

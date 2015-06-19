@@ -19,7 +19,8 @@
 package io.brooklyn.ambari.rest;
 
 import static io.brooklyn.ambari.rest.DefaultAmbariBluePrint.toMaps;
-import io.brooklyn.ambari.rest.RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding;
+import io.brooklyn.ambari.rest.RecommendationResponse.BlueprintClusterBinding;
+import io.brooklyn.ambari.rest.RecommendationResponse.ClusterBindingHostGroup;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,17 +33,17 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author duncangrant
  */
-public class DefaultBluePrintClusterBinding implements AsMap {
-    private List<AsMap> hostGroups = new LinkedList<AsMap>();
+public class DefaultBluePrintClusterBinding implements Mapable {
+    private List<Mapable> hostGroups = new LinkedList<Mapable>();
     private String bluePrintName;
 
     public DefaultBluePrintClusterBinding(BlueprintClusterBinding blueprintClusterBinding) {
-        for (BlueprintClusterBinding.HostGroup hostGroup : blueprintClusterBinding.host_groups) {
+        for (ClusterBindingHostGroup hostGroup : blueprintClusterBinding.host_groups) {
             hostGroups.add(new HostGroup(hostGroup));
         }
     }
 
-    public static DefaultBluePrintClusterBinding createFromRecommendation(RecommendationResponse.Resource.Recommendations.BlueprintClusterBinding blueprintClusterBinding) {
+    public static DefaultBluePrintClusterBinding createFromRecommendation(BlueprintClusterBinding blueprintClusterBinding) {
         return new DefaultBluePrintClusterBinding(blueprintClusterBinding);
     }
 
@@ -59,12 +60,12 @@ public class DefaultBluePrintClusterBinding implements AsMap {
         this.bluePrintName = bluePrintName;
     }
 
-    private static class HostGroup implements AsMap {
+    private static class HostGroup implements Mapable {
 
         private final String name;
         private final List<Host> hosts = new LinkedList<Host>();
 
-        public HostGroup(BlueprintClusterBinding.HostGroup hostGroup) {
+        public HostGroup(ClusterBindingHostGroup hostGroup) {
             name = hostGroup.name;
             for (Map host : hostGroup.hosts) {
                 hosts.add(new Host(host));
@@ -77,7 +78,7 @@ public class DefaultBluePrintClusterBinding implements AsMap {
 
         }
 
-        private class Host implements AsMap {
+        private class Host implements Mapable {
 
             private final Map hostParams;
 
