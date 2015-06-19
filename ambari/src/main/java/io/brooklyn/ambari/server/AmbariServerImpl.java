@@ -18,7 +18,6 @@
  */
 package io.brooklyn.ambari.server;
 
-import io.brooklyn.ambari.rest.AmbariApiHelper;
 import io.brooklyn.ambari.rest.DefaultAmbariApiHelper;
 import io.brooklyn.ambari.rest.DefaultAmbariBluePrint;
 import io.brooklyn.ambari.rest.DefaultBluePrintClusterBinding;
@@ -59,7 +58,7 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     private volatile HttpFeed hostsHttpFeed;
     //TODO clearly needs changed
     private UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials("admin", "admin");
-    private AmbariApiHelper ambariApiHelper;
+    private DefaultAmbariApiHelper ambariApiHelper;
 
     @Override
     public Class<AmbariServerDriver> getDriverInterface() {

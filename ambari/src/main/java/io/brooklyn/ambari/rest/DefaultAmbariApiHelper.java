@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-public class DefaultAmbariApiHelper implements AmbariApiHelper {
+public class DefaultAmbariApiHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultAmbariApiHelper.class);
     private final UsernamePasswordCredentials usernamePasswordCredentials;
@@ -51,38 +51,31 @@ public class DefaultAmbariApiHelper implements AmbariApiHelper {
         this.baseUri = baseUri;
     }
     
-    @Override
     public void createClusterAPI(String cluster, String version) {
         String json = Jsonya.newInstance().at("Clusters").put("version", version).root().toString();
         post(Optional.of(json), "/api/v1/clusters/{cluster}", cluster);
     }
 
-    @Override
     public void addHostToCluster(String cluster, String host) {        
         post("/api/v1/clusters/{cluster}/hosts/{host}", cluster, host);
     }
 
-    @Override
     public void addServiceToCluster(String cluster, String service) {
         post("/api/v1/clusters/{cluster}/services/{service}", cluster, service);
     }
 
-    @Override
     public void createComponent(String cluster, String service, String component) {
         post("/api/v1/clusters/{cluster}/services/{service}/components/{component}", cluster, service, component);
     }
 
-    @Override
     public void createHostComponent(String cluster, String hostName, String component) {
         post("/api/v1/clusters/{cluster}/hosts/{hostName}/host_components/{component}", cluster, hostName, component);
     }
 
-    @Override
     public void createBlueprint(String blueprintName, DefaultAmbariBluePrint blueprint) {
         post(Optional.of(blueprint.toJson()), "/api/v1/blueprints/{blueprintname}", blueprintName);
     }
 
-    @Override
     public RecommendationResponse getRecommendations(List<String> hosts, Iterable<String> services, String stack, String version) {
         String json = Jsonya.newInstance()
                 .root().put("hosts", hosts)
@@ -104,7 +97,6 @@ public class DefaultAmbariApiHelper implements AmbariApiHelper {
         }
     }
 
-    @Override
     public void createCluster(String clusterName, String blueprintName, DefaultBluePrintClusterBinding bluePrintClusterBinding) {
         bluePrintClusterBinding.setBluePrintName(blueprintName);
         post(Optional.of(bluePrintClusterBinding.toJson()), "/api/v1/clusters/{clustername}", clusterName);
