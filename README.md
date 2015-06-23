@@ -24,6 +24,7 @@ to AWS, adding the list of services shown:
     - type: io.brooklyn.ambari.AmbariCluster
       name: Ambari Cluster
       brooklyn.config:
+      # This security group needs to have port 8080 open
         securityGroup: test-ambari
         initialSize: 3
         services:
