@@ -35,7 +35,7 @@
     <parent>
         <groupId>org.apache.brooklyn</groupId>
         <artifactId>brooklyn-downstream-parent</artifactId>
-        <version>0.7.0-SNAPSHOT</version> <!-- BROOKLYN_VERSION -->
+        <version>0.8.0-SNAPSHOT</version> <!-- BROOKLYN_VERSION -->
     </parent>
 
     <modules>
@@ -47,7 +47,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.entry>io.brooklyn.ambari.AmbariMain</project.entry>
-        <brooklyn.version>0.7.0-SNAPSHOT</brooklyn.version>
+        <brooklyn.version>0.8.0-SNAPSHOT</brooklyn.version>
     </properties>
 
     <licenses>
@@ -91,19 +91,34 @@
     </dependencyManagement>
     
     <dependencies>
-	<dependency>
-		<groupId>org.apache.brooklyn</groupId>
-		<artifactId>brooklyn-core</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.brooklyn</groupId>
-		<artifactId>brooklyn-software-base</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.brooklyn</groupId>
-		<artifactId>brooklyn-launcher</artifactId>
-	</dependency>
-</dependencies>
+        <dependency>
+            <groupId>org.apache.brooklyn</groupId>
+            <artifactId>brooklyn-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.brooklyn</groupId>
+            <artifactId>brooklyn-software-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.brooklyn</groupId>
+            <artifactId>brooklyn-launcher</artifactId>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>cloudsoft-release</id>
+            <name>cloudsoft-release</name>
+            <url>http://ccweb.cloudsoftcorp.com/maven/cloudsoft-release/</url>
+            <uniqueVersion>true</uniqueVersion>
+        </repository>
+        <snapshotRepository>
+            <id>cloudsoft-snapshot</id>
+            <name>cloudsoft-snapshot</name>
+            <url>http://ccweb.cloudsoftcorp.com/maven/cloudsoft-snapshot/</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
 
