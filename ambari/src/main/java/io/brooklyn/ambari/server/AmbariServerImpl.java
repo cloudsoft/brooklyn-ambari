@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Nullable;
 
 import org.apache.brooklyn.api.entity.Entity;
@@ -40,10 +41,12 @@ import org.apache.brooklyn.util.core.http.HttpTool;
 import org.apache.brooklyn.util.core.task.DynamicTasks;
 import org.apache.brooklyn.util.core.task.Tasks;
 import org.apache.brooklyn.util.guava.Functionals;
+import org.apache.brooklyn.util.time.Duration;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.client.util.Lists;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
@@ -74,18 +77,17 @@ import retrofit.RetrofitError;
 public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServer {
 
     public static final Logger LOG = LoggerFactory.getLogger(AmbariServerImpl.class);
+    public static final Map<String, String> BASE_BLUEPRINTS = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
+    public static final List<? extends Map<?, ?>> CONFIGURATIONS = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
     private volatile HttpFeed serviceUpHttpFeed;
     private volatile HttpFeed hostsHttpFeed;
     private volatile HttpFeed clusterHttpFeed;
-
     private String ambariUri;
+
     private RestAdapter restAdapter;
 
     //TODO clearly needs changed
     private UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials("admin", "admin");
-    public static final Map<String, String> BASE_BLUEPRINTS = ImmutableMap.of("stack_name", "HDP", "stack_version", "2.2");
-    public static final List<? extends Map<?, ?>> CONFIGURATIONS = ImmutableList.of(ImmutableMap.of("nagios-env", ImmutableMap.of("nagios_contact", "admin@localhost")));
-
     @Override
     public Class<AmbariServerDriver> getDriverInterface() {
         return AmbariServerDriver.class;
@@ -282,24 +284,24 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
                 .name(String.format("Install %s service", service))
                 .description(String.format("Install %s service on specified hosts through Ambari REST API", service))
                 .body(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Step 5 - Install the service
-                            final Request request = serviceEndpoint.updateService(cluster, service, ImmutableMap.builder()
-                                    .put("RequestInfo", ImmutableMap.builder()
-                                            .put("context", String.format("Install %s service", service))
-                                            .build())
-                                    .put("ServiceInfo", ImmutableMap.builder()
-                                            .put("state", "INSTALLED")
-                                            .build())
-                                    .build());
+                    @Override
+                    public void run() {
+                        // Step 5 - Install the service
+                        final Request request = serviceEndpoint.updateService(cluster, service, ImmutableMap.builder()
+                                .put("RequestInfo", ImmutableMap.builder()
+                                        .put("context", String.format("Install %s service", service))
+                                        .build())
+                                .put("ServiceInfo", ImmutableMap.builder()
+                                        .put("state", "INSTALLED")
+                                        .build())
+                                .build());
 
-                            RequestCheckRunnable.check(request)
-                                    .headers(ImmutableMap.of(HttpHeaders.AUTHORIZATION, HttpTool.toBasicAuthorizationValue(usernamePasswordCredentials)))
-                                    .errorMessage(String.format("Error during installation of service \"%s\". Please check the Ambari console for more details: %s", service, ambariUri))
-                                    .build()
-                                    .run();
-                        }
+                        RequestCheckRunnable.check(request)
+                                .headers(ImmutableMap.of(HttpHeaders.AUTHORIZATION, HttpTool.toBasicAuthorizationValue(usernamePasswordCredentials)))
+                                .errorMessage(String.format("Error during installation of service \"%s\". Please check the Ambari console for more details: %s", service, ambariUri))
+                                .build()
+                                .run();
+                    }
                 }).build();
         final Task startTask = Tasks.builder()
                 .name(String.format("Start %s service", service))
@@ -337,6 +339,36 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     }
 
     @Override
+    public void addHostsToHostGroup(final String blueprintName, final String hostgroupName, final List<String> hosts, final String cluster) {
+        Iterable<Map> hostGroupMapping = Iterables.transform(hosts, fqdnsToMaps(blueprintName, hostgroupName));
+        LOG.info("hosts " + hostGroupMapping.iterator().hasNext());
+
+        HostEndpoint hostEndpoint = restAdapter.create(HostEndpoint.class);
+        Request request = hostEndpoint.addHosts(
+                cluster,
+                Lists.newArrayList(hostGroupMapping));
+
+        RequestCheckRunnable.check(request)
+                .headers(ImmutableMap.of(HttpHeaders.AUTHORIZATION, HttpTool.toBasicAuthorizationValue(usernamePasswordCredentials)))
+                .timeout(Duration.ONE_HOUR)
+                .errorMessage(String.format("Error during adding %s to %s", hosts, hostgroupName))
+                .build()
+                .run();
+    }
+
+    private Function<String, Map> fqdnsToMaps(final String blueprintName, final String hostgroupName) {
+        return new Function<String, Map>() {
+            @Nullable
+            @Override
+            public Map apply(@Nullable String fqdn) {
+                return ImmutableMap.of("blueprint", blueprintName,
+                        "host_group", hostgroupName,
+                        "host_name", fqdn);
+            }
+        };
+    }
+
+    @Override
     public void startService(@EffectorParam(name = "Cluster name") String cluster,
                              @EffectorParam(name = "Service name") final String service) {
         waitForServiceUp();
@@ -360,8 +392,8 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     @Override
     public boolean agentOnServer() {
         Iterable<AmbariCluster> ambariClusters = Iterables.filter(Entities.ancestors(this), AmbariCluster.class);
-        for(Entity parent: ambariClusters) {
-                return !parent.getConfig(AmbariCluster.SERVER_COMPONENTS).isEmpty();
+        for (Entity parent : ambariClusters) {
+            return !parent.getConfig(AmbariCluster.SERVER_COMPONENTS).isEmpty();
         }
         return false;
     }
@@ -382,12 +414,16 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     }
 
     @Override
+    public String getFqdn() {
+        return getAttribute(FQDN);
+    }
+
+    @Override
     public void setFqdn(String fqdn) {
         setAttribute(FQDN, fqdn);
     }
 
-    @Override
-    public String getFqdn() {
-        return getAttribute(FQDN);
+    public void setRestAdapter(RestAdapter restAdapter) {
+        this.restAdapter = restAdapter;
     }
 }

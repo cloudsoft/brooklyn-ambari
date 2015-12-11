@@ -19,8 +19,13 @@
 
 package io.brooklyn.ambari.rest.endpoint;
 
+import java.util.List;
+import java.util.Map;
+
 import io.brooklyn.ambari.rest.domain.HostComponents;
+import io.brooklyn.ambari.rest.domain.Request;
 import retrofit.client.Response;
+import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.Path;
@@ -29,6 +34,9 @@ public interface HostEndpoint {
 
     @POST("/api/v1/clusters/{cluster}/hosts/{host}")
     Response addHost(@Path("cluster") String cluster, @Path("host") String host);
+
+    @POST("/api/v1/clusters/{cluster}/hosts")
+    Request addHosts(@Path("cluster") String cluster, @Body List<Map> body);
 
     @GET("/api/v1/clusters/{cluster}/hosts/{host}/host_components")
     HostComponents getHostComponents(@Path("cluster") String cluster, @Path("host") String host);

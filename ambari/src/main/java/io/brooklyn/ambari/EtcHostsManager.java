@@ -19,6 +19,8 @@
 
 package io.brooklyn.ambari;
 
+import static org.apache.brooklyn.util.ssh.BashCommands.*;
+
 import java.util.Map;
 
 import org.apache.brooklyn.api.entity.Entity;
@@ -41,7 +43,8 @@ public class EtcHostsManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcHostsManager.class);
 
-    private EtcHostsManager() {}
+    private EtcHostsManager() {
+    }
 
     /**
      * For each machine, set its own hostname correctly, and add the other entity's details to /etc/hosts
@@ -89,21 +92,30 @@ public class EtcHostsManager {
                 boolean isMyOwnEntry = entry.getKey().equals(key);
                 String fqdn = entry.getValue();
                 if (fqdn.endsWith("."))
-                    fqdn = fqdn.substring(0, fqdn.length()-1);
+                    fqdn = fqdn.substring(0, fqdn.length() - 1);
                 int dotAt = fqdn.indexOf('.');
                 String[] values = dotAt > 0
-                        ? new String[] { fqdn, fqdn.substring(0, dotAt) }
-                        : new String[] { fqdn };
+                        ? new String[]{fqdn, fqdn.substring(0, dotAt)}
+                        : new String[]{fqdn};
 
                 if (isMyOwnEntry)
-                    commands.add(BashCommands.prependToEtcHosts(ip.get(), values));
+                    commands.add(
+                            alternatives(
+                                    sudo("grep " + ip.get() + " " + "/etc/hosts"),
+                                    prependToEtcHosts(ip.get(), values)));
                 else
-                    commands.add(BashCommands.appendToEtcHosts(entry.getKey(), values));
+                    commands.add(
+                            alternatives(
+                                    sudo("grep " + entry.getKey() + " " + "/etc/hosts"),
+                                    appendToEtcHosts(entry.getKey(), values)));
             }
 
             // Ensure that 127.0.0.1 maps to localhost, and nothing else
-            String tempFileId = "bak" + Identifiers.makeRandomId(4);
-            commands.add(BashCommands.sudo("sed -i." + tempFileId + " -e \'s/127.0.0.1\\s.*/127.0.0.1 localhost/\' /etc/hosts"));
+            String bakFileExtension = "bak" + Identifiers.makeRandomId(4);
+            commands.add(
+                    alternatives(
+                            sudo("grep 127.0.0.1 localhost /ect/hosts" ),
+                            sudo("sed -i." + bakFileExtension + " -e \'s/127.0.0.1\\s.*/127.0.0.1 localhost/\' /etc/hosts")));
 
             loc.execCommands("set hostname and fill /etc/hosts", commands.build());
         }
@@ -117,7 +129,7 @@ public class EtcHostsManager {
      * Scans the entities, determines the IP address and hostname for each entity, and returns a map that connects from
      * IP address to fully-qualified domain name.
      *
-     * @param entities entities to search for name/IP information.
+     * @param entities      entities to search for name/IP information.
      * @param addressSensor the sensor containing the IP address for each entity.
      * @return a map with an entry for each entity, mapping its IP address to its fully-qualified domain name.
      */

@@ -184,4 +184,6 @@ public interface AmbariCluster extends BasicStartable {
      * @return List of Strings of form http://host/def.tar.gz
      */
     List<String> getExtraStackDefinitionsUrls();
+
+    void addHostsToHostGroup(String displayName, List<AmbariAgent> hosts);
 }

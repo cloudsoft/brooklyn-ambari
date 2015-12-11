@@ -21,6 +21,7 @@ package io.brooklyn.ambari.hostgroup;
 
 import java.util.Collection;
 import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.apache.brooklyn.api.entity.Entity;
@@ -38,6 +39,7 @@ import io.brooklyn.ambari.AmbariCluster;
 import io.brooklyn.ambari.EtcHostsManager;
 import io.brooklyn.ambari.agent.AmbariAgent;
 import io.brooklyn.ambari.agent.AmbariAgentImpl;
+import io.brooklyn.ambari.server.AmbariServer;
 
 public class AmbariHostGroupImpl extends DynamicClusterImpl implements AmbariHostGroup {
     public static final Logger LOG = LoggerFactory.getLogger(AmbariHostGroup.class);
@@ -75,8 +77,22 @@ public class AmbariHostGroupImpl extends DynamicClusterImpl implements AmbariHos
     public Collection<Entity> resizeByDelta(int delta) {
         Collection<Entity> entities = super.resizeByDelta(delta);
 
-        if (delta != 0) {
+       if (delta > 0) {
             EtcHostsManager.setHostsOnMachines(getAmbariCluster().getAmbariNodes(), getConfig(AmbariCluster.ETC_HOST_ADDRESS));
+            final List<AmbariAgent> ambariAgents = ImmutableList.copyOf(Iterables.filter(entities, AmbariAgent.class));
+           // move test to cluster?
+            if(getAmbariCluster().getMasterAmbariServer().getAttribute(AmbariServer.CLUSTER_STATE).equals("COMPLETED")){
+               // Can I remove task?
+//                DynamicTasks.queue(Tasks.builder()
+//                        .displayName("add nodes to Ambari service")
+//                        .body(new Runnable() {
+//                            @Override
+//                            public void run() {
+                                getAmbariCluster().addHostsToHostGroup(getDisplayName(), ambariAgents);
+//                            }
+//                        })
+//                        .build());
+            }
         }
 
         return entities;

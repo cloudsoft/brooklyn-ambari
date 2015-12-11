@@ -64,7 +64,7 @@ public class RequestCheckRunnableTest {
         new RequestCheckRunnable.Builder(mockRequest("http://www.example.com")).client(httpClient).build().run();
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ERROR_MESSAGE)
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Request fails with state FAILED. Check here for details http://www.example.com")
     public void testFailedRequestThrowsRuntimeEx() throws IOException {
         new RequestCheckRunnable.Builder(mockRequest("http://www.example.com"))
                 .client(mockHttpClient("{\"Requests\":{\"request_status\": \"FAILED\"}}"))

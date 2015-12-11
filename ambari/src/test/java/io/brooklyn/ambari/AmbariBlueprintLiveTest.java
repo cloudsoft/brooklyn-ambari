@@ -21,6 +21,7 @@ package io.brooklyn.ambari;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.fail;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -40,6 +41,7 @@ import org.apache.brooklyn.core.mgmt.internal.EffectorUtils;
 import org.apache.brooklyn.core.mgmt.internal.LocalManagementContext;
 import org.apache.brooklyn.core.mgmt.rebind.RebindOptions;
 import org.apache.brooklyn.core.mgmt.rebind.RebindTestUtils;
+import org.apache.brooklyn.entity.group.DynamicCluster;
 import org.apache.brooklyn.entity.software.base.SoftwareProcess;
 import org.apache.brooklyn.launcher.blueprints.AbstractBlueprintTest;
 import org.apache.brooklyn.test.Asserts;
@@ -64,6 +66,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 import io.brooklyn.ambari.agent.AmbariAgent;
+import io.brooklyn.ambari.hostgroup.AmbariHostGroup;
 import io.brooklyn.ambari.server.AmbariServer;
 
 @Test(singleThreaded = false, threadPoolSize = 2)
@@ -102,11 +105,6 @@ public class AmbariBlueprintLiveTest extends AbstractBlueprintTest {
         this.assertHadoopClusterEventuallyDeployed(newApp);
 
         return newApp;
-    }
-
-    protected void runTestsAndEffectors(Reader yaml) throws Exception {
-        Application app = runTestsAndGetApp(yaml);
-        this.assertAddServiceToClusterEffectorWorks(app);
     }
 
     protected void assertNoFires(final Entity app) {
@@ -206,6 +204,24 @@ public class AmbariBlueprintLiveTest extends AbstractBlueprintTest {
         runTestsAndEffectors(new StringReader(yaml));
     }
 
+    @Test(groups = {"Live"})
+    public void testExpandCluster() throws Exception {
+        Map<String, String> options = ImmutableMap.<String, String>builder()
+                .put("minRam", "16384")
+                .put("minCores", "4")
+                .put("osFamily", "ubuntu")
+                .put("osVersionRegex", "12.*")
+                .put("stopIptables", "true")
+                .build();
+
+        String yaml =
+                buildLocation("softlayer", "ams01", options) +
+                        new ResourceUtils(this)
+                                .getResourceAsString("ambari-cluster-by-hostgroup.yaml");
+
+        runTestsAndResizeEffector(new StringReader(yaml));
+    }
+
     protected Application rebind(Application currentApp, RebindOptions options) throws Exception {
         ManagementContext origMgmt = this.mgmt;
         LocalManagementContext newMgmt = this.createNewManagementContext();
@@ -252,6 +268,40 @@ public class AmbariBlueprintLiveTest extends AbstractBlueprintTest {
                 ambariServer,
                 AmbariServer.CLUSTER_STATE,
                 Predicates.equalTo("COMPLETED"));
+    }
+
+    private void runTestsAndResizeEffector(StringReader yaml) throws Exception {
+        Application app = runTestsAndGetApp(yaml);
+        assertResizeClusterWorks(app);
+    }
+
+    private void assertResizeClusterWorks(Application app) {
+        AmbariHostGroup ambariHostGroup = null;
+        for (AmbariHostGroup hostGroup : Entities.descendants(app, AmbariHostGroup.class)) {
+            if(hostGroup.getDisplayName().equals("DataNode")) {
+                ambariHostGroup = hostGroup;
+                break;
+            }
+        }
+
+        if(ambariHostGroup==null) {
+            fail();
+        }
+
+        final Maybe<Effector<?>> effector = EffectorUtils.findEffector(ambariHostGroup.getEntityType().getEffectors(), "resizeByDelta");
+        if (effector.isAbsentOrNull()) {
+            throw new IllegalStateException("Cannot get the addServiceToCluster effector");
+        }
+
+        Task<Collection<Entity>> task = ambariHostGroup.invoke(DynamicCluster.RESIZE_BY_DELTA, ImmutableMap.of("delta", 1));
+
+        task.getUnchecked();
+        assertFalse(task.isError(), "Effector should not fail");
+    }
+
+    private void runTestsAndEffectors(Reader yaml) throws Exception {
+        Application app = runTestsAndGetApp(yaml);
+        assertAddServiceToClusterEffectorWorks(app);
     }
 
     protected void assertAddServiceToClusterEffectorWorks(Application app) {
