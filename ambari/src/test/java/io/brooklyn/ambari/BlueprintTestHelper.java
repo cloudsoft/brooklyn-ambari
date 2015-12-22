@@ -63,28 +63,28 @@ public class BlueprintTestHelper {
         });
     }
 
-    RebindOptions getRebindOptions(RebindOptions options, LocalManagementContext newMgmt, ClassLoader classLoader, File mementoDir, ManagementContext mgmt) {
+    RebindOptions getRebindOptions(final RebindOptions rebindOptions, final LocalManagementContext newMgmt, final ClassLoader classLoader, final File mementoDir, final ManagementContext mgmt) {
         ManagementContext origMgmt = mgmt;
-        options = RebindOptions.create(options);
-        if(options.classLoader == null) {
-            options.classLoader(classLoader);
+        RebindOptions newOptions = RebindOptions.create(rebindOptions);
+        if(newOptions.classLoader == null) {
+            newOptions.classLoader(classLoader);
         }
 
-        if(options.mementoDir == null) {
-            options.mementoDir(mementoDir);
+        if(newOptions.mementoDir == null) {
+            newOptions.mementoDir(mementoDir);
         }
 
-        if(options.origManagementContext == null) {
-            options.origManagementContext(origMgmt);
+        if(newOptions.origManagementContext == null) {
+            newOptions.origManagementContext(origMgmt);
         }
 
-        if(options.newManagementContext == null) {
-            options.newManagementContext(newMgmt);
+        if(newOptions.newManagementContext == null) {
+            newOptions.newManagementContext(newMgmt);
         }
-        return options;
+        return newOptions;
     }
 
-    Application rebindAndGetApp(Application currentApp, RebindOptions options) throws Exception {
+    Application rebindAndGetApp(final Application currentApp, final RebindOptions options) throws Exception {
         final Collection<Application> newApps = RebindTestUtils.rebindAll(options);
         for (Application newApp : newApps) {
             if (newApp.getId().equals(currentApp.getId())) {
@@ -95,7 +95,7 @@ public class BlueprintTestHelper {
         throw new IllegalStateException("Application could not be rebinded; serialization probably failed");
     }
 
-    String buildLocation(String provider, String region, Map<String, String> options) {
+    String buildLocation(final String provider, final String region, final Map<String, String> options) {
         StringBuffer sb = new StringBuffer("location:\n").append(String.format("  %s:%s:\n", provider, region));
         for (Map.Entry<String, String> o : options.entrySet()) {
             sb.append(String.format("    %s: %s\n", o.getKey(), o.getValue()));
@@ -104,7 +104,7 @@ public class BlueprintTestHelper {
         return sb.toString();
     }
 
-    String getYamlFileContents(String yamlFile, String provider, String region, Map<String, String> options, AmbariBlueprintLiveTest ambariBlueprintLiveTest) {
+    String getYamlFileContents(final String yamlFile, final String provider, final String region, final Map<String, String> options, final AmbariBlueprintLiveTest ambariBlueprintLiveTest) {
         return buildLocation(provider, region, options) + new ResourceUtils(ambariBlueprintLiveTest).getResourceAsString(yamlFile);
     }
 }

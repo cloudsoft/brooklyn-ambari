@@ -178,8 +178,8 @@ public class AmbariBlueprintLiveTest extends AbstractBlueprintTest {
         ambariLiveTestHelper.assertResizeClusterWorks(app);
     }
 
-    protected Application rebind(Application currentApp, RebindOptions options) throws Exception {
-        options = blueprintTestHelper.getRebindOptions(options, this.createNewManagementContext(), this.classLoader, this.mementoDir, this.mgmt);
+    protected Application rebind(final Application currentApp) throws Exception {
+        RebindOptions options = blueprintTestHelper.getRebindOptions(RebindOptions.create(), this.createNewManagementContext(), this.classLoader, this.mementoDir, this.mgmt);
         RebindTestUtils.waitForPersisted(currentApp);
         this.mgmt = options.newManagementContext;
         return blueprintTestHelper.rebindAndGetApp(currentApp, options);
@@ -188,7 +188,7 @@ public class AmbariBlueprintLiveTest extends AbstractBlueprintTest {
     protected Application runTestsAndGetApp(Reader yaml) throws Exception {
         Application app = this.launcher.launchAppYaml(yaml);
         blueprintTestHelper.assertNoFires(app);
-        Application newApp = rebind(app, RebindOptions.create());
+        Application newApp = rebind(app);
         blueprintTestHelper.assertNoFires(newApp);
         this.ambariLiveTestHelper.assertHadoopClusterEventuallyDeployed(newApp);
 
