@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.apache.brooklyn.api.effector.Effector;
 import org.apache.brooklyn.api.entity.EntityLocal;
 import org.apache.brooklyn.api.entity.EntitySpec;
 import org.apache.brooklyn.api.location.Location;
@@ -39,12 +40,14 @@ import org.apache.brooklyn.core.entity.Attributes;
 import org.apache.brooklyn.core.entity.Entities;
 import org.apache.brooklyn.core.entity.lifecycle.ServiceStateLogic;
 import org.apache.brooklyn.core.mgmt.BrooklynTaskTags;
+import org.apache.brooklyn.core.mgmt.internal.EffectorUtils;
 import org.apache.brooklyn.enricher.stock.Enrichers;
 import org.apache.brooklyn.entity.software.base.SoftwareProcess;
 import org.apache.brooklyn.entity.stock.BasicStartableImpl;
 import org.apache.brooklyn.util.collections.MutableList;
 import org.apache.brooklyn.util.collections.MutableMap;
 import org.apache.brooklyn.util.core.task.Tasks;
+import org.apache.brooklyn.util.guava.Maybe;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
@@ -85,20 +88,21 @@ import io.brooklyn.ambari.service.ExtraServiceException;
  */
 public class AmbariClusterImpl extends BasicStartableImpl implements AmbariCluster {
 
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(BasicStartableImpl.class);
     public static final ImmutableList<String> DEFAULT_SERVICES = ImmutableList.<String>of("ZOOKEEPER");
     public static final ImmutableMap<String, Map> DEFAULT_CONFIG_MAP = ImmutableMap.<String, Map>of();
+    public static final String BLUEPRINT_NAME = "mybp";
+    public static final String CLUSTER_NAME = "Cluster1";
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(BasicStartableImpl.class);
     //TODO is there an issue with rebind here?  On rebind should be populated from somewhere else?
-
     private boolean isHostGroupsDeployment;
     private List<String> services;
     private Map<String, Map> configuration;
     private Map<String, List<String>> componentsByNode;
-    private Function<AmbariServer, String> mapAmbariServerToFQDN = new Function<AmbariServer, String>() {
+    private Function<AmbariNode, String> mapAmbariNodeToFQDN = new Function<AmbariNode, String>() {
         @Nullable
         @Override
-        public String apply(@Nullable AmbariServer ambariServer) {
-            return ambariServer.getFqdn();
+        public String apply(@Nullable AmbariNode ambariNode) {
+            return ambariNode.getFqdn();
         }
     };
 
@@ -232,6 +236,20 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
     }
 
     @Override
+    public void addHostsToHostGroup(String hostgroupName, List<AmbariAgent> hosts) {
+        final Maybe<Effector<?>> effector = EffectorUtils.findEffector(getMasterAmbariServer().getEntityType().getEffectors(), "addHostsToHostGroup");
+        if (effector.isAbsentOrNull()) {
+            throw new IllegalStateException("Cannot get the addHostsToHostGroup effector");
+        }
+        getMasterAmbariServer().invoke(effector.get(), ImmutableMap.of(
+                "Blueprint Name", BLUEPRINT_NAME,
+                "Hostgroup Name", hostgroupName,
+                "Hosts", Lists.transform(hosts, mapAmbariNodeToFQDN),
+                "Cluster Name", CLUSTER_NAME
+        ));
+    }
+
+    @Override
     public void deployCluster() throws AmbariApiException, ExtraServiceException {
         // Set the flag to true so the deployment won't happen multiple times
         setAttribute(CLUSTER_SERVICES_INITIALISE_CALLED, true);
@@ -311,7 +329,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
         LOG.info("{} calling cluster-deploy", this);
         try {
-            Request request = getMasterAmbariServer().deployCluster("Cluster1", "mybp", recommendationWrapper, configuration);
+            Request request = getMasterAmbariServer().deployCluster(CLUSTER_NAME, BLUEPRINT_NAME, recommendationWrapper, configuration);
         } catch (AmbariApiException ex) {
             // If the cluster failed to deploy, we first put the server "ON FIRE" and throw again the exception for the
             // cluster to handle it properly.
@@ -380,7 +398,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
             }
             blueprintBuilder.addHostGroup(hostGroupBuilder.build());
             Iterable<AmbariServer> ambariServers = getAmbariServers();
-            Iterable<String> fqdns = transform(ambariServers, mapAmbariServerToFQDN);
+            Iterable<String> fqdns = transform(ambariServers, mapAmbariNodeToFQDN);
 
             bindingsBuilder.addHostGroup(new HostGroup.Builder()
                     .setName(getConfig(SERVER_HOST_GROUP))
@@ -446,22 +464,6 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
         return null;
     }
 
-    private class PreClusterDeployFunction implements Function<ExtraService, Void> {
-        @Override
-        public Void apply(ExtraService extraService) {
-            extraService.preClusterDeploy(getAmbariCluster());
-            return null;
-        }
-    }
-
-    private class PostClusterDeployFunction implements Function<ExtraService, Void> {
-        @Override
-        public Void apply(ExtraService extraService) {
-            extraService.postClusterDeploy(getAmbariCluster());
-            return null;
-        }
-    }
-
     private void calculateTotalAgents() {
         int agentsToExpect = 0;
 
@@ -502,5 +504,21 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
     private <T> T getRequiredConfig(ConfigKey<T> key) {
         return checkNotNull(getConfig(key), "config %s", key);
+    }
+
+    private class PreClusterDeployFunction implements Function<ExtraService, Void> {
+        @Override
+        public Void apply(ExtraService extraService) {
+            extraService.preClusterDeploy(getAmbariCluster());
+            return null;
+        }
+    }
+
+    private class PostClusterDeployFunction implements Function<ExtraService, Void> {
+        @Override
+        public Void apply(ExtraService extraService) {
+            extraService.postClusterDeploy(getAmbariCluster());
+            return null;
+        }
     }
 }

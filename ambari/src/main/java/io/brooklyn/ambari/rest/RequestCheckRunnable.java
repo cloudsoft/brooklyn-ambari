@@ -39,16 +39,16 @@ import io.brooklyn.ambari.rest.domain.Request;
 
 public class RequestCheckRunnable implements Runnable {
 
-    private static final List<String> VALID_STATES = ImmutableList.of("IN_PROGRESS", "COMPLETED");
+    private static final List<String> VALID_STATES = ImmutableList.of("IN_PROGRESS", "COMPLETED", "PENDING");
 
     private final Builder builder;
 
-    public static Builder check(Request request) {
-        return new Builder(request);
-    }
-
     protected RequestCheckRunnable(Builder builder) {
         this.builder = builder;
+    }
+
+    public static Builder check(Request request) {
+        return new Builder(request);
     }
 
     @Override
@@ -61,7 +61,9 @@ public class RequestCheckRunnable implements Runnable {
                         final String json = HttpTool.httpGet(builder.httpClient, URI.create(builder.request.getHref()), builder.headers).getContentAsString();
                         final String status = JsonPath.read(json, "$.Requests.request_status");
                         if (!VALID_STATES.contains(status)) {
-                            throw new RuntimeException(builder.errorMessage);
+                            throw new RuntimeException(
+                                    "Request fails with state " + status +
+                                            ". Check here for details " + builder.request.getHref());
                         }
                         return StringUtils.equals(status, "COMPLETED");
                     }
@@ -72,7 +74,8 @@ public class RequestCheckRunnable implements Runnable {
 
         if (!done) {
             throw new RuntimeException(builder.errorMessage);
-        };
+        }
+        ;
     }
 
     public static class Builder {
