@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import org.apache.brooklyn.util.core.http.HttpTool;
+import org.apache.brooklyn.util.http.HttpTool;
 import org.apache.brooklyn.util.repeat.Repeater;
 import org.apache.brooklyn.util.time.Duration;
 import org.apache.commons.lang3.StringUtils;

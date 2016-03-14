@@ -23,7 +23,7 @@ package io.brooklyn.ambari.rest;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import org.apache.brooklyn.util.core.http.HttpTool;
+import org.apache.brooklyn.util.http.HttpTool;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.testng.annotations.Test;
 

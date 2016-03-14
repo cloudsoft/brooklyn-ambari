@@ -19,7 +19,7 @@
 
 package io.brooklyn.ambari.rest;
 
-import org.apache.brooklyn.util.core.http.HttpTool;
+import org.apache.brooklyn.util.http.HttpTool;
 import org.apache.http.auth.UsernamePasswordCredentials;
 
 import com.google.common.base.Preconditions;

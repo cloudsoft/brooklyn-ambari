@@ -24,7 +24,7 @@ import static org.testng.Assert.assertEquals;
 import java.text.MessageFormat;
 import java.util.List;
 
-import org.apache.brooklyn.util.core.http.HttpToolResponse;
+import org.apache.brooklyn.util.http.HttpToolResponse;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
