@@ -1,0 +1,66 @@
+brooklyn.catalog:
+  version: 0.6.0-SNAPSHOT
+
+  libraries:
+  - "https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=io.brooklyn.ambari&a=brooklyn-ambari&v=0.6.0-SNAPSHOT&e=jar"
+
+  publish:
+    description: |
+      Entities for running the Apache Ambari project in Apache Brooklyn.
+    license_code: Apache-2.0
+    icon_url: http://hortonworks.com/wp-content/uploads/2016/03/apache-ambari-project.png
+
+  items:
+
+  - id: ambari-cluster-template
+    description: |
+      A cluster of Ambari nodes
+    name: "Ambari Cluster Template"
+    iconUrl: http://ambari.apache.org/images/apache-ambari-project.jpg
+    itemType: template
+    item:
+      services:
+      - type: ambari-cluster-application
+        name: "Ambari driven cloud - small"
+
+  - id: ambari-cluster-application
+    itemType: entity
+    item:
+      type: org.apache.brooklyn.entity.stock.BasicApplication
+
+      brooklyn.parameters:
+      - name: ambari.cluster.nodes
+        description: |
+          The number of nodes in the cluster
+        type: integer
+        default: 3
+        constraints:
+          - required
+
+      brooklyn.config:
+        ambari.cluster.nodes: 3
+
+      brooklyn.children:
+      - type: io.brooklyn.ambari.AmbariCluster
+        name: "Ambari cluster"
+        brooklyn.config:
+          initialSize: $brooklyn:config("ambari.cluster.nodes")
+          provisioning.properties:
+            securityGroupIds: 
+            - test-ambari
+            minRam: 8192
+            osFamily: ubuntu
+            osVersionRegex: 14
+          ambariConfigMap:
+            hdfs-site:
+              dfs.webhdfs.enabled: true
+              dfs.permissions.enabled: false
+            httpfs-site:
+              httpfs.proxyuser.hue: '*'
+              httpfs.proxyuser.hue.groups: '*'
+          services:
+          - HBASE
+          - HDFS
+          - MAPREDUCE2
+          - YARN
+          - ZOOKEEPER
