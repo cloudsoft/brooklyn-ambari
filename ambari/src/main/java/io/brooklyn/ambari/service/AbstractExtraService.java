@@ -95,6 +95,16 @@ public abstract class AbstractExtraService extends BasicStartableImpl implements
         return Tasks.parallel("Parallel invocation of " + fn + " on ambari nodes", tasks);
     }
 
+    @Override
+    public void preHostGroupScale(AmbariCluster ambariCluster, Iterable<AmbariAgent> newAgents) {
+       // By default do nothing
+    }
+
+    @Override
+    public void postHostGroupScale(AmbariCluster ambariCluster, Iterable<AmbariAgent> newAgents) {
+       // By default do nothing
+    }
+
     /**
      * Utility method that will execute the given function on the given nodes, only if they have one of the given components
      * installed on them. The executions will be done in a parallel.

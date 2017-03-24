@@ -21,14 +21,18 @@ package io.brooklyn.ambari.hostgroup;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 
 import org.apache.brooklyn.api.entity.Entity;
 import org.apache.brooklyn.api.entity.EntitySpec;
+import org.apache.brooklyn.api.mgmt.Task;
 import org.apache.brooklyn.core.entity.Entities;
 import org.apache.brooklyn.entity.group.DynamicClusterImpl;
 import org.apache.brooklyn.entity.software.base.SameServerEntity;
+import org.apache.brooklyn.util.exceptions.Exceptions;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,9 @@ import io.brooklyn.ambari.AmbariCluster;
 import io.brooklyn.ambari.EtcHostsManager;
 import io.brooklyn.ambari.agent.AmbariAgent;
 import io.brooklyn.ambari.agent.AmbariAgentImpl;
+import io.brooklyn.ambari.service.AbstractExtraServicesTask;
+import io.brooklyn.ambari.service.ExtraService;
+import io.brooklyn.ambari.service.ExtraServiceException;
 
 public class AmbariHostGroupImpl extends DynamicClusterImpl implements AmbariHostGroup {
     public static final Logger LOG = LoggerFactory.getLogger(AmbariHostGroup.class);
@@ -80,20 +87,39 @@ public class AmbariHostGroupImpl extends DynamicClusterImpl implements AmbariHos
             EtcHostsManager.setHostsOnMachines(getAmbariCluster().getAmbariNodes(), getConfig(AmbariCluster.ETC_HOST_ADDRESS));
             if (getAmbariCluster().isClusterComplete()) {
                 final List<AmbariAgent> ambariAgents = getAmbariAgents(entities);
-                getAmbariCluster().addHostsToHostGroup(getDisplayName(), ambariAgents);
+                try {
+                    runExtraServicesTasks("Pre-scale tasks", new PreScaleTask(ambariAgents));
+                    getAmbariCluster().addHostsToHostGroup(getDisplayName(), ambariAgents);
+                    runExtraServicesTasks("Post-scale tasks", new PostScaleTask(ambariAgents));
+                } catch (ExtraServiceException ex) {
+                    Exceptions.propagate(ex);
+                }
             }
         }
 
         return entities;
     }
 
+    private void runExtraServicesTasks(String taskName, AbstractExtraServicesTask fn) {
+        Task<List<?>> extraServicesParallelTask = getAmbariCluster().createExtraServicesParallelTask(taskName, fn);
+        try {
+            Entities.submit(this, extraServicesParallelTask).get();
+        } catch (ExecutionException | InterruptedException ex) {
+            Throwable rootCause = ExceptionUtils.getRootCause(ex);
+            if (rootCause != null && rootCause instanceof ExtraServiceException) {
+                throw (ExtraServiceException) rootCause;
+            } else {
+                throw new ExtraServiceException(ex.getMessage());
+            }
+        }
+    }
+
     private List<AmbariAgent> getAmbariAgents(Collection<Entity> entities) {
         ImmutableList.Builder<AmbariAgent> builder = ImmutableList.<AmbariAgent>builder();
         for (Entity entity : entities) {
-            if(entity instanceof AmbariAgent) {
+            if (entity instanceof AmbariAgent) {
                 builder.add((AmbariAgent) entity);
-            }
-            else {
+            } else {
                 builder.addAll(Entities.descendants(entity, AmbariAgent.class));
             }
         }
@@ -113,5 +139,33 @@ public class AmbariHostGroupImpl extends DynamicClusterImpl implements AmbariHos
 
     private AmbariCluster getAmbariCluster() {
         return Iterables.getFirst(Iterables.filter(Entities.ancestors(this), AmbariCluster.class), null);
+    }
+
+    private class PostScaleTask extends AbstractExtraServicesTask<ExtraService> {
+        private final List<AmbariAgent> ambariAgents;
+
+        public PostScaleTask(List<AmbariAgent> ambariAgents) {
+            this.ambariAgents = ambariAgents;
+        }
+
+        @Override
+        public Task<Integer> sshTaskApply(ExtraService node) {
+            node.postHostGroupScale(getAmbariCluster(), ambariAgents);
+            return null;
+        }
+    }
+
+    private class PreScaleTask extends AbstractExtraServicesTask<ExtraService> {
+        private final List<AmbariAgent> ambariAgents;
+
+        public PreScaleTask(List<AmbariAgent> ambariAgents) {
+            this.ambariAgents = ambariAgents;
+        }
+
+        @Override
+        public Task<Integer> sshTaskApply(ExtraService node) {
+            node.preHostGroupScale(getAmbariCluster(), ambariAgents);
+            return null;
+        }
     }
 }

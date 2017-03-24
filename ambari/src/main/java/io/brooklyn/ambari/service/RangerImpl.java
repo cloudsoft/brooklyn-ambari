@@ -19,11 +19,7 @@
 
 package io.brooklyn.ambari.service;
 
-import static org.apache.brooklyn.util.ssh.BashCommands.alternatives;
-import static org.apache.brooklyn.util.ssh.BashCommands.installExecutable;
-import static org.apache.brooklyn.util.ssh.BashCommands.installPackageOr;
-import static org.apache.brooklyn.util.ssh.BashCommands.installPackageOrFail;
-import static org.apache.brooklyn.util.ssh.BashCommands.sudo;
+import static org.apache.brooklyn.util.ssh.BashCommands.*;
 
 import java.util.List;
 import java.util.Map;
@@ -99,7 +95,7 @@ public class RangerImpl extends AbstractExtraService implements Ranger {
             LOG.info("{} performing Ranger requirements on the Ranger host", this);
             Task<List<?>> mysqlRequirementTasks = parallelListenerTask(ambariCluster.getAmbariAgents(), new MysqlRequirementsFunction(), REQUIRES_MYSQL_CLIENT);
             Entities.submit(this, mysqlRequirementTasks).get();
-        } catch (ExecutionException|InterruptedException ex) {
+        } catch (ExecutionException | InterruptedException ex) {
             // If something failed, we propagate the exception.
             throw new ExtraServiceException(ex.getMessage());
         }
@@ -107,7 +103,18 @@ public class RangerImpl extends AbstractExtraService implements Ranger {
 
     @Override
     public void postClusterDeploy(AmbariCluster ambariCluster) throws ExtraServiceException {
+    }
 
+    @Override
+    public void preHostGroupScale(AmbariCluster ambariCluster, Iterable<AmbariAgent> newAgents) {
+        try {
+            LOG.info("{} performing Ranger requirements on Ambari nodes with {} components installed", this, REQUIRES_JDBC_DRIVER);
+            Task<List<?>> rangerAgentRequirementsTasks = parallelListenerTask(newAgents, new AmbariAgentRequirementsFunction(), REQUIRES_JDBC_DRIVER);
+            Entities.submit(this, rangerAgentRequirementsTasks).get();
+        } catch (ExecutionException | InterruptedException ex) {
+            // If something failed, we propagate the exception.
+            throw new ExtraServiceException(ex.getMessage());
+        }
     }
 
     @Nullable

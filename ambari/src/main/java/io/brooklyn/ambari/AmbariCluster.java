@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.brooklyn.api.catalog.Catalog;
 import org.apache.brooklyn.api.entity.EntitySpec;
 import org.apache.brooklyn.api.entity.ImplementedBy;
+import org.apache.brooklyn.api.mgmt.Task;
 import org.apache.brooklyn.api.sensor.AttributeSensor;
 import org.apache.brooklyn.config.ConfigKey;
 import org.apache.brooklyn.core.config.BasicConfigKey;
@@ -38,6 +39,7 @@ import org.apache.brooklyn.entity.software.base.SoftwareProcess;
 import org.apache.brooklyn.entity.stock.BasicStartable;
 import org.apache.brooklyn.util.core.flags.SetFromFlag;
 
+import com.google.common.base.Function;
 import com.google.common.reflect.TypeToken;
 
 import io.brooklyn.ambari.agent.AmbariAgent;
@@ -269,4 +271,12 @@ public interface AmbariCluster extends BasicStartable {
      * @return true once all ambari services are installed and running
      */
     boolean isClusterComplete();
+
+    /**
+     * Create a task that runs subtasks on each extra service
+     * @param taskName Name of the task
+     * @param fn to run on each extra service
+     * @return the parent task
+     */
+    public Task<List<?>> createExtraServicesParallelTask(String taskName, final Function<ExtraService, ?> fn);
 }

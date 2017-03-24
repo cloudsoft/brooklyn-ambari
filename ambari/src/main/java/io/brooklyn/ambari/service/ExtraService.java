@@ -36,6 +36,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 
 import io.brooklyn.ambari.AmbariCluster;
+import io.brooklyn.ambari.agent.AmbariAgent;
 
 /**
  * Defines an "extra service" for the Hadoop cluster. An entity implementing this interface will be assured to be called
@@ -145,4 +146,20 @@ public interface ExtraService extends BasicStartable {
      * @param ambariCluster the current Ambari cluster entity.
      */
     void postClusterDeploy(AmbariCluster ambariCluster) throws ExtraServiceException;
+
+    /**
+     * Called after new hosts provisioned but before they are added to cluster
+     *
+     * @param ambariCluster the current Ambari cluster entity.
+     * @param newAgents the new created ambari agents
+     */
+    void preHostGroupScale(AmbariCluster ambariCluster, Iterable<AmbariAgent> newAgents);
+
+    /**
+     * Called after new hosts have been added to Ambari cluster, components installed, etc
+     * @param ambariCluster the current Ambari cluster entity.
+     * @param newAgents the new created ambari agents
+     */
+    void postHostGroupScale(AmbariCluster ambariCluster, Iterable<AmbariAgent> newAgents);
 }
+
