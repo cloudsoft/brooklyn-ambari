@@ -19,7 +19,6 @@
 
 package io.brooklyn.ambari;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +84,7 @@ public interface AmbariCluster extends BasicStartable {
             .name("extraServices")
             .description("List of extra services to deploy to Hadoop Cluster " +
                     "NB: this configuration parameter doesn't work in yaml")
-            .defaultValue(new LinkedList<EntitySpec<? extends ExtraService>>())
+            .defaultValue(ImmutableList.<EntitySpec<? extends ExtraService>>of())
             .build();
 
     @Deprecated
@@ -118,7 +117,7 @@ public interface AmbariCluster extends BasicStartable {
             ConfigKeys.newConfigKey(
                     new TypeToken<List<String>>() {
                     }, "ambari.server.components", "List of components to install on Ambari Server.  " +
-                            "If non-empty then ambari agent will be added to server", new LinkedList<String>());
+                            "If non-empty then ambari agent will be added to server", ImmutableList.<String>of());
 
     @SetFromFlag("ambariConfigMap")
     ConfigKey<Map<String, Map>> AMBARI_CONFIGURATIONS =
@@ -127,7 +126,7 @@ public interface AmbariCluster extends BasicStartable {
     @SetFromFlag("ambariStackDefsUrls")
     ConfigKey<List<String>> STACK_DEFINITION_URLS =
             ConfigKeys.newConfigKey(new TypeToken<List<String>>() {
-            }, "ambari.stack.urls", "stack definitions as tar.gz", new LinkedList<String>());
+            }, "ambari.stack.urls", "stack definitions as tar.gz", ImmutableList.<String>of());
 
     @SetFromFlag("pauseForDeployment")
     ConfigKey<Boolean> PAUSE_FOR_DEPLOYMENT =
